@@ -22,9 +22,6 @@ createRoot(document.getElementById('root')!).render(
           fontFamily: 'var(--font-sans, system-ui, -apple-system, sans-serif)'
         },
         elements: {
-          footer: { display: 'none' },
-          footerAction: { display: 'none' },
-          badge: { display: 'none' },
           devModeBadge: { display: 'none' }
         }
       }}
@@ -33,6 +30,12 @@ createRoot(document.getElementById('root')!).render(
           start: {
             title: "Sign in to Ankit's Digital Twin",
             subtitle: "Welcome! Please verify your recruiter email to continue"
+          }
+        },
+        signUp: {
+          start: {
+            title: "Recruiter Access — Ankit's Digital Twin",
+            subtitle: "Enter your work email for instant screening access"
           }
         }
       }}

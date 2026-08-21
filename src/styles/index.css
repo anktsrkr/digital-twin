@@ -958,4 +958,13 @@ aside::-webkit-scrollbar-thumb:hover,
   background-image: none !important;
 }
 
+.cl-footerActionText, .cl-footerActionLink {
+  font-size: 0.85rem !important;
+}
+
+.cl-footerActionLink {
+  color: #1D4ED8 !important;
+  font-weight: 600 !important;
+}
+
 

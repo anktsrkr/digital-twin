@@ -35,7 +35,7 @@ jobs:
           GITHUB_PAGES: "true"
           GITHUB_REPOSITORY: ${{ github.repository }}
           VITE_BASE_PATH: "/digital-twin/"
-          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY || 'pk_live_Y2xlcmsuYW5rdHNya3IuZ2l0aHViLmlvJA' }}
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_aHVtYmxlLWZpbmNoLTYzMDIuY2xlcmsuYWNjb3VudHMuZGV2JA' }}
           VITE_BACKEND_API_URL: ${{ secrets.VITE_BACKEND_API_URL || 'https://digitaltwinbe.runasp.net' }}
           VITE_API_URL: ${{ secrets.VITE_BACKEND_API_URL || 'https://digitaltwinbe.runasp.net' }}
         run: |

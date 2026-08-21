@@ -930,3 +930,32 @@ aside::-webkit-scrollbar-thumb:hover,
   }
 }
 
+/* =========================================================================
+   CLERK MODAL POLISH & WHITE-LABEL OVERRIDES
+   ========================================================================= */
+
+/* Remove development mode watermark stripe and banner */
+.cl-devModeBanner,
+.cl-development-badge,
+.cl-badge,
+.cl-footer__development,
+.cl-internal-1dauvpw,
+.cl-internal-b3fm6y,
+[data-localization-key*="developmentMode"],
+[class*="developmentMode"],
+.cl-card > div[style*="repeating-linear-gradient"],
+.cl-card > div[style*="linear-gradient(rgba(255, 255, 255, 0.9)"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* Ensure clean white-label modal card */
+.cl-card {
+  border-radius: 16px !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid #E2E8F0 !important;
+  background-image: none !important;
+}
+
+

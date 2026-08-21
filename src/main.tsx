@@ -20,6 +20,12 @@ createRoot(document.getElementById('root')!).render(
           colorText: '#0F172A',
           borderRadius: '0.625rem',
           fontFamily: 'var(--font-sans, system-ui, -apple-system, sans-serif)'
+        },
+        elements: {
+          footer: { display: 'none' },
+          footerAction: { display: 'none' },
+          badge: { display: 'none' },
+          devModeBadge: { display: 'none' }
         }
       }}
       localization={{

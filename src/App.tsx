@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { CopilotKit } from '@copilotkit/react-core';
 import { ArchitectureDossier } from './components/ArchitectureDossier';
 import { DigitalTwinChat } from './components/DigitalTwinChat';
-import { AuthModal } from './components/AuthModal';
 import { BlockedEmailModal } from './components/BlockedEmailModal';
 import { CitationDrawer, type CitationDetail } from './components/CitationDrawer';
 import { useAuth, useUser, useClerk } from '@clerk/clerk-react';
@@ -29,7 +28,6 @@ export function App() {
     const session = getSavedRecruiterSession();
     return session?.company || (typeof window !== 'undefined' ? (localStorage.getItem('recruiter_company') || undefined) : undefined);
   });
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isBlockedEmail, setIsBlockedEmail] = useState(false);
   const [selectedCitation, setSelectedCitation] = useState<CitationDetail | null>(null);
   const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
@@ -156,11 +154,6 @@ export function App() {
     };
   }, []);
 
-  const handleAuthSuccess = () => {
-    setIsAuthOpen(false);
-    openSignIn();
-  };
-
   const handleSignOut = () => {
     clearRecruiterSession();
     setToken(null);
@@ -180,13 +173,13 @@ export function App() {
   const handleSelectPrompt = useCallback((prompt: string) => {
     if (!isEffectivelyAuthenticated) {
       setPendingPrompt(prompt);
-      setIsAuthOpen(true);
+      openSignIn();
       return;
     }
     setSelectedPrompt(prompt);
     // On mobile, auto-switch to terminal tab to see the live response
     setMobileTab('terminal');
-  }, [isEffectivelyAuthenticated]);
+  }, [isEffectivelyAuthenticated, openSignIn]);
 
   const handleScheduleClick = useCallback(() => {
     handleSelectPrompt("When is Ankit available for an interview or screening call?");
@@ -238,7 +231,7 @@ export function App() {
                   isAuthenticated={isEffectivelyAuthenticated}
                   recruiterEmail={recruiterEmail}
                   recruiterCompany={recruiterCompany}
-                  onOpenAuth={() => setIsAuthOpen(true)}
+                  onOpenAuth={() => openSignIn()}
                   onSignOut={handleSignOut}
                   onToggleSidebar={toggleSidebar}
                 />
@@ -250,7 +243,7 @@ export function App() {
               <DigitalTwinChat
                 isAuthenticated={isEffectivelyAuthenticated}
                 recruiterEmail={recruiterEmail}
-                onOpenAuth={() => setIsAuthOpen(true)}
+                onOpenAuth={() => openSignIn()}
                 onBlockedEmail={() => setIsBlockedEmail(true)}
                 onOpenCitation={(citation) => setSelectedCitation(citation)}
                 externalPrompt={selectedPrompt}
@@ -262,13 +255,6 @@ export function App() {
             </section>
           </main>
         </div>
-
-        {/* Recruiter Authentication Modal */}
-        <AuthModal
-          isOpen={isAuthOpen}
-          onClose={() => setIsAuthOpen(false)}
-          onSuccess={handleAuthSuccess}
-        />
 
         {/* Disposable Email Blocked Modal */}
         <BlockedEmailModal

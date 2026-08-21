@@ -67,9 +67,7 @@ export function App() {
   // Maintain effective authentication state across reload/hydration
   const isEffectivelyAuthenticated = isAuthenticated || (isLoading && !!recruiterEmail);
 
-  const backendUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-    ? 'http://localhost:5000'
-    : (import.meta.env.VITE_BACKEND_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000');
+  const backendUrl = import.meta.env.VITE_BACKEND_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
     if (isAuthenticated) {

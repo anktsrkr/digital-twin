@@ -31,7 +31,7 @@ import type { CitationDetail } from './CitationDrawer';
 import { ScheduleMeetingCard, DownloadResumeCard } from './ActionCards';
 import { LiveSlotPicker } from './LiveSlotPicker';
 import { FollowUpPills, type FollowUpPillItem } from './FollowUpPills';
-import { getSavedRecruiterSession } from '../lib/logtoClient';
+import { getSavedRecruiterSession } from '../lib/session';
 
 interface DigitalTwinChatProps {
   isAuthenticated: boolean;

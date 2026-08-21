@@ -1,14 +1,7 @@
 /**
- * Logto Passwordless Magic Link & Authentication Client
- * Connects to Logto Cloud / Local Logto service and .NET 10 backend endpoints.
+ * Recruiter Session State Storage
+ * Caches recruiter identity and bearer token in localStorage for session resilience.
  */
-
-export interface LogtoConfig {
-  endpoint: string;
-  appId: string;
-  resources?: string[];
-  scopes?: string[];
-}
 
 export interface RecruiterSession {
   email: string;
@@ -21,6 +14,7 @@ export interface RecruiterSession {
 const STORAGE_KEY_SESSION = 'recruiter_session';
 const STORAGE_KEY_EMAIL = 'recruiter_email';
 const STORAGE_KEY_COMPANY = 'recruiter_company';
+const STORAGE_KEY_TOKEN = 'recruiter_token';
 
 /**
  * Retrieves saved session from localStorage.
@@ -37,10 +31,12 @@ export function getSavedRecruiterSession(): RecruiterSession | null {
 
   const email = localStorage.getItem(STORAGE_KEY_EMAIL);
   const company = localStorage.getItem(STORAGE_KEY_COMPANY);
+  const token = localStorage.getItem(STORAGE_KEY_TOKEN);
   if (email) {
     return {
       email,
       company: company || undefined,
+      token: token || undefined,
       authenticatedAt: new Date().toISOString()
     };
   }
@@ -63,7 +59,7 @@ export function saveRecruiterSession(session: RecruiterSession): void {
       localStorage.removeItem(STORAGE_KEY_COMPANY);
     }
     if (session.token) {
-      localStorage.setItem('recruiter_token', session.token);
+      localStorage.setItem(STORAGE_KEY_TOKEN, session.token);
     }
   } catch {}
 }
@@ -78,6 +74,6 @@ export function clearRecruiterSession(): void {
     localStorage.removeItem(STORAGE_KEY_SESSION);
     localStorage.removeItem(STORAGE_KEY_EMAIL);
     localStorage.removeItem(STORAGE_KEY_COMPANY);
-    localStorage.removeItem('recruiter_token');
+    localStorage.removeItem(STORAGE_KEY_TOKEN);
   } catch {}
 }

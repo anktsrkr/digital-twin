@@ -1,20 +1,37 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { LogtoProvider } from '@logto/react';
+import { ClerkProvider } from '@clerk/clerk-react';
 import './styles/index.css';
 import App from './App.tsx';
 
-const config = {
-  endpoint: import.meta.env.VITE_LOGTO_ENDPOINT || '',
-  appId: import.meta.env.VITE_LOGTO_APP_ID || '',
-  resources: import.meta.env.VITE_LOGTO_API_RESOURCE ? [import.meta.env.VITE_LOGTO_API_RESOURCE] : [],
-  scopes: ['openid', 'profile', 'email', 'offline_access']
-};
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_aHVtYmxlLWZpbmNoLTYzMDIuY2xlcmsuYWNjb3VudHMuZGV2JA';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <LogtoProvider config={config}>
+    <ClerkProvider
+      publishableKey={PUBLISHABLE_KEY}
+      appearance={{
+        layout: {
+          socialButtonsPlacement: 'top',
+          showOptionalFields: false
+        },
+        variables: {
+          colorPrimary: '#1D4ED8',
+          colorText: '#0F172A',
+          borderRadius: '0.625rem',
+          fontFamily: 'var(--font-sans, system-ui, -apple-system, sans-serif)'
+        }
+      }}
+      localization={{
+        signIn: {
+          start: {
+            title: "Sign in to Ankit's Digital Twin",
+            subtitle: "Welcome! Please verify your recruiter email to continue"
+          }
+        }
+      }}
+    >
       <App />
-    </LogtoProvider>
+    </ClerkProvider>
   </StrictMode>,
 );

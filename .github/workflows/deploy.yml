@@ -2,7 +2,7 @@ name: Deploy Digital Twin Frontend to GitHub Pages
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 permissions:
@@ -24,7 +24,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
 
       - name: Install dependencies
@@ -35,14 +35,12 @@ jobs:
           GITHUB_PAGES: "true"
           GITHUB_REPOSITORY: ${{ github.repository }}
           VITE_BASE_PATH: "/digital-twin/"
-          VITE_BACKEND_API_URL: ${{ secrets.VITE_BACKEND_API_URL }}
-          VITE_LOGTO_ENDPOINT: ${{ secrets.VITE_LOGTO_ENDPOINT }}
-          VITE_LOGTO_APP_ID: ${{ secrets.VITE_LOGTO_APP_ID }}
-          VITE_LOGTO_API_RESOURCE: ${{ secrets.VITE_LOGTO_API_RESOURCE }}
-        run: npm run build
-
-      - name: Copy index.html to 404.html for SPA routing fallback
-        run: cp dist/index.html dist/404.html
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY || 'pk_live_Y2xlcmsuYW5rdHNya3IuZ2l0aHViLmlvJA' }}
+          VITE_BACKEND_API_URL: ${{ secrets.VITE_BACKEND_API_URL || 'https://digitaltwinbe.runasp.net' }}
+          VITE_API_URL: ${{ secrets.VITE_BACKEND_API_URL || 'https://digitaltwinbe.runasp.net' }}
+        run: |
+          npm run build
+          cp dist/index.html dist/404.html
 
       - name: Upload artifact for GitHub Pages
         uses: actions/upload-pages-artifact@v3

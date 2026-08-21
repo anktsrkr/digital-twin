@@ -140,7 +140,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         {/* Trust Footer Badge */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '20px', color: '#64748B', fontSize: '0.75rem', fontWeight: 500 }}>
           <ShieldCheck size={14} color="#059669" />
-          <span>Powered by Logto Security</span>
+          <span>Powered by Clerk Security</span>
         </div>
       </div>
     </div>

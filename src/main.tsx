@@ -29,13 +29,19 @@ createRoot(document.getElementById('root')!).render(
         signIn: {
           start: {
             title: "Sign in to Ankit's Digital Twin",
-            subtitle: "Welcome! Please verify your recruiter email to continue"
+            subtitle: "Enter your work email for instant access (verification email is tagged [Development])"
+          },
+          emailCode: {
+            subtitle: "Enter the 6-digit verification code sent to {{identifier}} (subject line starts with [Development])"
           }
         },
         signUp: {
           start: {
             title: "Recruiter Access — Ankit's Digital Twin",
-            subtitle: "Enter your work email for instant screening access"
+            subtitle: "Enter your work email for instant access (verification email is tagged [Development])"
+          },
+          emailCode: {
+            subtitle: "Enter the 6-digit verification code sent to {{identifier}} (subject line starts with [Development])"
           }
         }
       }}

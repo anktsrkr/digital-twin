@@ -32,7 +32,7 @@ createRoot(document.getElementById('root')!).render(
             subtitle: "Enter your work email for instant access (verification email is tagged [Development])"
           },
           emailCode: {
-            subtitle: "Enter the 6-digit verification code sent to {{identifier}} (subject line starts with [Development])"
+            subtitle: "Enter the 6-digit verification code sent to your email (email subject starts with [Development])"
           }
         },
         signUp: {
@@ -41,7 +41,7 @@ createRoot(document.getElementById('root')!).render(
             subtitle: "Enter your work email for instant access (verification email is tagged [Development])"
           },
           emailCode: {
-            subtitle: "Enter the 6-digit verification code sent to {{identifier}} (subject line starts with [Development])"
+            subtitle: "Enter the 6-digit verification code sent to your email (email subject starts with [Development])"
           }
         }
       }}

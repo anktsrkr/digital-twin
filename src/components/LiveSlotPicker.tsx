@@ -186,12 +186,12 @@ export const LiveSlotPicker: React.FC<LiveSlotPickerProps> = ({
     return groups;
   }, [activeSlotsList]);
 
-  const dates = Object.keys(groupedSlots);
-  const [selectedDate, setSelectedDate] = useState<string>(dates[0] || '');
+  const dates = useMemo(() => Object.keys(groupedSlots), [groupedSlots]);
+  const [selectedDate, setSelectedDate] = useState<string>(() => dates[0] || '');
 
   // Keep selected date valid
   useEffect(() => {
-    if ((!selectedDate || !groupedSlots[selectedDate]) && dates.length > 0) {
+    if (dates.length > 0 && (!selectedDate || !groupedSlots[selectedDate])) {
       setSelectedDate(dates[0]);
     }
   }, [dates, selectedDate, groupedSlots]);

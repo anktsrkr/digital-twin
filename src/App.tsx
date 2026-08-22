@@ -18,15 +18,20 @@ function CopilotAuthSync({ token }: { token: string | null }) {
   const { copilotkit } = useCopilotKit();
 
   useEffect(() => {
-    if (token) {
-      copilotkit.setHeaders({
-        ...copilotkit.headers,
-        Authorization: `Bearer ${token}`
-      });
-    } else {
-      const current = { ...copilotkit.headers };
-      delete (current as any).Authorization;
-      copilotkit.setHeaders(current);
+    const currentAuth = copilotkit.headers?.Authorization;
+    const expectedAuth = token ? `Bearer ${token}` : undefined;
+
+    if (currentAuth !== expectedAuth) {
+      if (token) {
+        copilotkit.setHeaders({
+          ...copilotkit.headers,
+          Authorization: `Bearer ${token}`
+        });
+      } else if (currentAuth) {
+        const current = { ...copilotkit.headers };
+        delete (current as any).Authorization;
+        copilotkit.setHeaders(current);
+      }
     }
   }, [copilotkit, token]);
 
@@ -90,6 +95,8 @@ export function App() {
   const isEffectivelyAuthenticated = !!isSignedIn || (!isLoaded && !!recruiterEmail);
 
   const backendUrl = import.meta.env.VITE_BACKEND_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const userEmail = user?.primaryEmailAddress?.emailAddress ?? user?.emailAddresses?.[0]?.emailAddress;
+  const userId = user?.id;
 
   useEffect(() => {
     let isMounted = true;
@@ -101,8 +108,7 @@ export function App() {
           const sessionToken = await getToken();
           if (!isMounted) return;
 
-          const email = user?.primaryEmailAddress?.emailAddress ?? user?.emailAddresses?.[0]?.emailAddress;
-
+          const email = userEmail;
           let inferredCompany: string | undefined = undefined;
 
           if (email && email.includes('@')) {
@@ -112,27 +118,27 @@ export function App() {
               const companyPart = domain.split('.')[0];
               if (companyPart) {
                 inferredCompany = companyPart.charAt(0).toUpperCase() + companyPart.slice(1);
-                setRecruiterCompany(inferredCompany);
+                setRecruiterCompany(prev => prev !== inferredCompany ? inferredCompany : prev);
               }
             } else {
-              setRecruiterCompany(undefined);
+              setRecruiterCompany(prev => prev !== undefined ? undefined : prev);
             }
           }
 
           if (sessionToken) {
-            setToken(sessionToken);
+            setToken(prev => prev !== sessionToken ? sessionToken : prev);
           }
           if (email) {
-            setRecruiterEmail(email);
+            setRecruiterEmail(prev => prev !== email ? email : prev);
           }
-          setIsBlockedEmail(false);
+          setIsBlockedEmail(prev => prev ? false : prev);
 
           if (email || sessionToken) {
             saveRecruiterSession({
-              email: email || recruiterEmail || '',
+              email: email || '',
               company: inferredCompany,
               token: sessionToken ?? undefined,
-              userId: user?.id,
+              userId: userId,
               authenticatedAt: new Date().toISOString()
             });
           }
@@ -147,17 +153,17 @@ export function App() {
       })();
     } else if (isLoaded && !isSignedIn) {
       // Clear session when Clerk confirms signed out
-      setToken(null);
-      setRecruiterEmail(undefined);
-      setRecruiterCompany(undefined);
-      setIsBlockedEmail(false);
+      setToken(prev => prev !== null ? null : prev);
+      setRecruiterEmail(prev => prev !== undefined ? undefined : prev);
+      setRecruiterCompany(prev => prev !== undefined ? undefined : prev);
+      setIsBlockedEmail(prev => prev ? false : prev);
       clearRecruiterSession();
     }
 
     return () => {
       isMounted = false;
     };
-  }, [isSignedIn, isLoaded, getToken, user, pendingPrompt, recruiterEmail]);
+  }, [isSignedIn, isLoaded, getToken, userEmail, userId, pendingPrompt]);
 
   // Global network interceptor: distinguish between Blocked Disposable Email (X-Blocked-Reason / 403) vs Regular 401 Session Expiry
   useEffect(() => {

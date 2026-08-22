@@ -361,6 +361,91 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
   const [input, setInput] = useState('');
   const [followUpPills, setFollowUpPills] = useState<FollowUpPillItem[]>(INITIAL_PILLS);
   const [isLoadingFollowUps, setIsLoadingFollowUps] = useState(false);
+  const [rateLimitCountdown, setRateLimitCountdown] = useState<number>(0);
+  const [rateLimitMessage, setRateLimitMessage] = useState<string>('');
+  const lastSentMessageRef = useRef<string | null>(null);
+  const pendingRetryMessageRef = useRef<string | null>(null);
+
+  const [dailyQuestionsUsed, setDailyQuestionsUsed] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const savedDate = localStorage.getItem('daily_quota_date');
+      const today = new Date().toISOString().slice(0, 10);
+      if (savedDate === today) {
+        return parseInt(localStorage.getItem('daily_quota_count') || '0', 10);
+      }
+    }
+    return 0;
+  });
+
+  const triggerRateLimit = useCallback((seconds: number = 12, retryText?: string, customMsg?: string) => {
+    if (retryText) {
+      pendingRetryMessageRef.current = retryText;
+    }
+    setRateLimitMessage(customMsg || "Please give Ankit's Digital Twin a brief moment before sending your next request.");
+    setRateLimitCountdown(Math.max(1, seconds));
+  }, []);
+
+  const sendMessageRef = useRef<(text?: string) => Promise<void>>(null!);
+
+  const handleManualRetry = useCallback(() => {
+    const text = pendingRetryMessageRef.current;
+    pendingRetryMessageRef.current = null;
+    setRateLimitCountdown(0);
+    if (text && sendMessageRef.current) {
+      sendMessageRef.current(text);
+    }
+  }, []);
+
+  const handleCancelRetry = useCallback(() => {
+    pendingRetryMessageRef.current = null;
+    setRateLimitCountdown(0);
+  }, []);
+
+  // Global window.fetch interceptor to capture HTTP 429 across CopilotKit SSE streams and REST calls
+  useEffect(() => {
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      const response = await originalFetch(...args);
+      if (response.status === 429) {
+        try {
+          const clone = response.clone();
+          const data = await clone.json().catch(() => null);
+          const retrySec = data?.retryAfterSeconds || parseInt(response.headers.get('Retry-After') || '12', 10) || 12;
+          triggerRateLimit(retrySec, lastSentMessageRef.current || undefined, data?.message);
+        } catch {
+          triggerRateLimit(12, lastSentMessageRef.current || undefined);
+        }
+      }
+      return response;
+    };
+
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, [triggerRateLimit]);
+
+  // Countdown timer for rate-limiting 429 cooldown with automatic retry
+  useEffect(() => {
+    if (rateLimitCountdown <= 0) return;
+    const interval = setInterval(() => {
+      setRateLimitCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          const retryText = pendingRetryMessageRef.current;
+          pendingRetryMessageRef.current = null;
+          if (retryText && sendMessageRef.current) {
+            setTimeout(() => {
+              sendMessageRef.current(retryText);
+            }, 100);
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [rateLimitCountdown]);
+
   const prevIsRunningRef = useRef(agent.isRunning);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -368,8 +453,10 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
   const backendUrl = import.meta.env.VITE_BACKEND_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   // Notify parent of agent running state
+  const lastReportedRunningRef = useRef<boolean | null>(null);
   useEffect(() => {
-    if (onAgentStateChange) {
+    if (onAgentStateChange && lastReportedRunningRef.current !== agent.isRunning) {
+      lastReportedRunningRef.current = agent.isRunning;
       onAgentStateChange(agent.isRunning);
     }
   }, [agent.isRunning, onAgentStateChange]);
@@ -829,6 +916,8 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
     const text = messageText || input.trim();
     if (!text) return;
 
+    lastSentMessageRef.current = text;
+
     const email = authRef.current.recruiterEmail || recruiterEmail || localStorage.getItem('recruiter_email');
     const isAuthed = authRef.current.isAuthenticated || isAuthenticated || !!email;
 
@@ -846,11 +935,30 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
       }
     }
 
-    agent.addMessage({
-      id: crypto.randomUUID(),
-      role: 'user',
-      content: text,
-    });
+    // Check if this action is exempt from the 10 daily questions quota
+    const isExempt = /download\s+(?:resume|cv|pdf)|(?:calendar|slot|appointment|interview|schedule|when\s+is\s+ankit\s+available)/i.test(text);
+    if (!isExempt) {
+      setDailyQuestionsUsed((prev) => {
+        const next = Math.min(10, prev + 1);
+        if (typeof window !== 'undefined') {
+          const today = new Date().toISOString().slice(0, 10);
+          localStorage.setItem('daily_quota_date', today);
+          localStorage.setItem('daily_quota_count', String(next));
+        }
+        return next;
+      });
+    }
+
+    const lastUserMsg = agent.messages[agent.messages.length - 1];
+    const isAlreadyLast = lastUserMsg && lastUserMsg.role === 'user' && (lastUserMsg.content === text || (lastUserMsg as any).text === text);
+
+    if (!isAlreadyLast) {
+      agent.addMessage({
+        id: crypto.randomUUID(),
+        role: 'user',
+        content: text,
+      });
+    }
 
     setInput('');
     inputRef.current?.focus();
@@ -883,20 +991,26 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
       const errStr = String(err?.message || err);
       if (errStr.includes('403') || errStr.toLowerCase().includes('disposable')) {
         onBlockedEmail?.();
+      } else if (errStr.includes('429') || errStr.toLowerCase().includes('rate')) {
+        triggerRateLimit(12, text);
       }
     }
-  }, [input, agent, copilotkit, isAuthenticated, recruiterEmail, token, isSignedIn, getToken, onOpenAuth, onBlockedEmail]);
+  }, [input, agent, copilotkit, isAuthenticated, recruiterEmail, token, isSignedIn, getToken, onOpenAuth, onBlockedEmail, triggerRateLimit]);
 
-  // Reactive agent error listener (catches 403 / DisposableEmail on /agentic_chat stream)
+  sendMessageRef.current = sendMessage;
+
+  // Reactive agent error listener (catches 403 / 429 on /agentic_chat stream)
   useEffect(() => {
     const error = (agent as any).error;
     if (error) {
       const errStr = String(error?.message || error);
       if (errStr.includes('403') || errStr.toLowerCase().includes('disposable')) {
         onBlockedEmail?.();
+      } else if (errStr.includes('429') || errStr.toLowerCase().includes('rate')) {
+        triggerRateLimit(12, lastSentMessageRef.current || undefined);
       }
     }
-  }, [(agent as any).error, onBlockedEmail]);
+  }, [(agent as any).error, onBlockedEmail, triggerRateLimit]);
 
   // Stop agent handler
   const stopAgent = useCallback(() => {
@@ -930,7 +1044,7 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
     const wasRunning = prevIsRunningRef.current;
     prevIsRunningRef.current = agent.isRunning;
 
-    if (agent.isRunning) {
+    if (!wasRunning && agent.isRunning) {
       // While the digital twin is responding, show active generating/shimmer state
       setIsLoadingFollowUps(true);
     } else if (wasRunning && !agent.isRunning && agent.messages.length > 0) {
@@ -943,7 +1057,7 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
               let text = m.content;
               if (Array.isArray(m.contents)) {
                 const textParts = m.contents.filter((c: any) => c.$type === 'text' || c.type === 'text');
-                if (textParts.length > 0) text = textParts.map((t: any) => t.text).join('\n');
+                if (textParts.length > 0) text = textParts.map((t: any) => t.text || '').join('');
               }
               return {
                 role: m.role || 'user',
@@ -971,7 +1085,11 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
           const res = await fetch(`${backendUrl}/api/followup/suggestions`, {
             method: 'POST',
             headers,
-            body: JSON.stringify({ messages: payloadMessages })
+            body: JSON.stringify({
+              messages: payloadMessages,
+              turn_count: dailyQuestionsUsed,
+              max_daily_limit: 10
+            })
           });
 
           if (res.ok) {
@@ -989,7 +1107,7 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
 
       fetchFollowUps();
     }
-  }, [agent.isRunning, agent.messages, backendUrl, token, isSignedIn, getToken]);
+  }, [agent.isRunning, agent.messages, backendUrl, token, isSignedIn, getToken, dailyQuestionsUsed]);
 
   // Intercept citation clicks
   useEffect(() => {
@@ -1223,7 +1341,20 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
               }
 
               const isUser = msg.role === 'user';
-              const toolCalls = msg.toolCalls || [];
+              const rawToolCalls = msg.toolCalls || msg.tool_calls || [];
+              let toolCalls = Array.isArray(rawToolCalls) ? [...rawToolCalls] : [];
+              if (toolCalls.length === 0 && Array.isArray(msg.contents)) {
+                const inlineCalls = msg.contents
+                  .filter((c: any) => c && (c.type === 'action_call' || c.type === 'tool_call' || c.$type === 'function_call'))
+                  .map((c: any) => ({
+                    id: c.id || c.callId || c.toolCallId || 'inline-tc',
+                    name: c.name || c.actionName || c.function?.name,
+                    arguments: c.arguments || c.args || c.parameters
+                  }));
+                if (inlineCalls.length > 0) {
+                  toolCalls = inlineCalls;
+                }
+              }
 
               // Extract text content
               let textContent = msg.content;
@@ -1231,7 +1362,7 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
               if (Array.isArray(msg.contents)) {
                 const textParts = msg.contents.filter((c: any) => c.$type === 'text' || c.type === 'text');
                 if (textParts.length > 0) {
-                  textContent = textParts.map((t: any) => t.text).join('\n');
+                  textContent = textParts.map((t: any) => t.text || '').join('');
                 }
               }
 
@@ -1243,11 +1374,15 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
                 }
               }
 
-              const hasText = Boolean(textContent && typeof textContent === 'string' && textContent.trim().length > 0);
+              let hasText = Boolean(textContent && typeof textContent === 'string' && textContent.trim().length > 0);
               const hasToolCalls = Boolean(Array.isArray(toolCalls) && toolCalls.length > 0);
 
               if (!isUser && !hasText && !hasToolCalls) {
-                return null;
+                if (agent.isRunning) {
+                  return null;
+                }
+                textContent = "I encountered an interruption while synthesizing this architectural response. Please feel free to ask a targeted follow-up question or choose any open slot on my calendar below!";
+                hasText = true;
               }
 
               // Check if this is the first message in a consecutive run of assistant messages
@@ -1424,6 +1559,131 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
               </div>
             )}
 
+            {/* Rate-Limit Cooldown & Auto-Resume Banner */}
+            {rateLimitCountdown > 0 && (
+              <div
+                style={{
+                  alignSelf: 'stretch',
+                  margin: '0.75rem 0',
+                  padding: '0.85rem 1.1rem',
+                  borderRadius: 'var(--radius-lg)',
+                  background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
+                  border: '1px solid #FDE68A',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.65rem',
+                  boxShadow: 'var(--shadow-sm)',
+                  animation: 'slideUpFade 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                }}
+              >
+                {/* Header & Description */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    background: '#FEF3C7',
+                    border: '1px solid #FCD34D',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#D97706',
+                    flexShrink: 0,
+                    marginTop: '2px'
+                  }}>
+                    <Zap size={15} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '0.86rem', fontWeight: 600, color: '#92400E', lineHeight: 1.3 }}>
+                      Rate limit reached — catching a quick breath
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: '#B45309', marginTop: '0.2rem', lineHeight: 1.45 }}>
+                      {rateLimitMessage?.replace(/^Rate limit reached\.\s*/i, '') || "Please give Ankit's Digital Twin a brief moment before sending your next request."}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Auto-Retry Timer Status & Action Buttons */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '0.6rem',
+                  paddingTop: '0.5rem',
+                  borderTop: '1px solid rgba(253, 230, 138, 0.7)'
+                }}>
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    fontSize: '0.76rem',
+                    color: '#92400E',
+                    fontWeight: 500
+                  }}>
+                    <span style={{
+                      display: 'inline-block',
+                      width: '7px',
+                      height: '7px',
+                      borderRadius: '50%',
+                      background: '#D97706'
+                    }} />
+                    <span>Retrying automatically in</span>
+                    <span style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontWeight: 700,
+                      background: '#FEF3C7',
+                      border: '1px solid #FCD34D',
+                      color: '#92400E',
+                      padding: '0.1rem 0.45rem',
+                      borderRadius: '4px',
+                      fontSize: '0.78rem'
+                    }}>
+                      {rateLimitCountdown}s
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexShrink: 0 }}>
+                    <button
+                      type="button"
+                      onClick={handleManualRetry}
+                      style={{
+                        padding: '0.35rem 0.8rem',
+                        background: 'var(--accent-slate)',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: 'var(--radius-sm)',
+                        fontSize: '0.76rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        boxShadow: 'var(--shadow-xs)',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      Retry Now
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelRetry}
+                      style={{
+                        padding: '0.35rem 0.65rem',
+                        background: 'transparent',
+                        color: '#92400E',
+                        border: '1px solid #FCD34D',
+                        borderRadius: 'var(--radius-sm)',
+                        fontSize: '0.76rem',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div ref={messagesEndRef} />
           </div>
         )}
@@ -1451,91 +1711,240 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
           padding: '0.65rem 0.95rem',
           background: '#FFFFFF',
           display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
+          flexDirection: 'column',
+          gap: '0.35rem',
           flexShrink: 0,
           position: 'sticky',
           bottom: 0,
           zIndex: 5
         }}>
-          <form
-            onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
-            style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.45rem' }}
-          >
-            <input
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={isAuthenticated 
-                ? "Ask a technical architecture screening question or book a call... (Enter to send)"
-                : "Click to sign in and ask Ankit's Digital Twin..."}
-              disabled={agent.isRunning}
-              style={{
-                flex: 1,
-                padding: '0.6rem 0.9rem',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-hairline)',
-                background: 'var(--bg-surface-subtle)',
-                fontSize: '0.86rem',
-                outline: 'none',
-                transition: 'all 0.15s ease',
-                color: 'var(--text-primary)',
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = 'var(--accent-slate)';
-                e.currentTarget.style.background = '#FFFFFF';
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border-hairline)';
-                e.currentTarget.style.background = 'var(--bg-surface-subtle)';
-              }}
-            />
-            {agent.isRunning ? (
+          {/* Near-Limit Conversion Banner (Turns 8 & 9) */}
+          {dailyQuestionsUsed >= 8 && dailyQuestionsUsed < 10 && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0.35rem 0.75rem',
+              background: 'var(--accent-amber-subtle)',
+              border: '1px solid #FDE68A',
+              borderRadius: 'var(--radius-md)',
+              fontSize: '0.78rem',
+              color: '#92400E'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <Zap size={13} color="#D97706" />
+                <span>You have {10 - dailyQuestionsUsed} question{10 - dailyQuestionsUsed === 1 ? '' : 's'} remaining today. Ready to connect directly?</span>
+              </div>
               <button
                 type="button"
-                onClick={stopAgent}
+                onClick={() => handleSelectPill({ id: 'book', label: 'Book a Call', action_type: 'book_call', category: 'Action', prompt: 'When is Ankit available for an interview or screening call?' })}
                 style={{
-                  width: '36px', height: '36px',
-                  borderRadius: 'var(--radius-md)',
-                  background: '#FEF2F2',
-                  border: '1px solid #FECACA',
-                  color: '#DC2626',
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#B45309',
+                  fontWeight: 700,
+                  fontSize: '0.78rem',
                   cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  transition: 'all 0.15s ease'
-                }}
-                title="Stop generating"
-              >
-                <Square size={14} />
-              </button>
-            ) : (
-              <button
-                type="submit"
-                disabled={!input.trim()}
-                style={{
-                  width: '36px', height: '36px',
-                  borderRadius: 'var(--radius-md)',
-                  background: input.trim() 
-                    ? 'var(--accent-slate)' 
-                    : 'var(--bg-surface-subtle)',
-                  border: '1px solid var(--border-hairline)',
-                  color: input.trim() ? '#FFFFFF' : 'var(--text-muted)',
-                  cursor: input.trim() ? 'pointer' : 'default',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  transition: 'all 0.15s ease',
-                  boxShadow: input.trim() ? '0 1px 3px rgba(0, 0, 0, 0.15)' : 'none'
+                  textDecoration: 'underline'
                 }}
               >
-                <Send size={14} />
+                Book a Call ➔
               </button>
-            )}
-          </form>
+            </div>
+          )}
+
+          {/* Hard Limit Finish Line (10/10 Questions Reached) */}
+          {dailyQuestionsUsed >= 10 ? (
+            <div style={{
+              flex: 1,
+              background: 'var(--bg-surface-muted)',
+              border: '1px solid var(--border-hairline)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '0.75rem 1rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '0.75rem'
+            }}>
+              <div>
+                <div style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                  ✨ You've explored Ankit's Digital Twin today (10/10 questions)
+                </div>
+                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                  Daily quota resets at 00:00 UTC • Calendar booking and CV downloads are always active
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                <button
+                  type="button"
+                  onClick={() => handleSelectPill({ id: 'book', label: 'Book a Call', action_type: 'book_call', category: 'Action', prompt: 'When is Ankit available for an interview or screening call?' })}
+                  style={{
+                    padding: '0.4rem 0.85rem',
+                    background: 'var(--accent-slate)',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  <Calendar size={13} />
+                  Book an Interview
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectPill({ id: 'resume', label: 'Download Resume', action_type: 'download_resume', category: 'Action', prompt: 'Can I download Ankit Sarkar\'s resume PDF?' })}
+                  style={{
+                    padding: '0.4rem 0.85rem',
+                    background: '#FFFFFF',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--border-hairline)',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem'
+                  }}
+                >
+                  <ArrowUpRight size={13} />
+                  Resume PDF
+                </button>
+              </div>
+            </div>
+          ) : (
+            <form
+              onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
+              style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.45rem' }}
+            >
+              <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <input
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={isAuthenticated 
+                    ? "Ask a technical architecture screening question or book a call... (Enter to send)"
+                    : "Click to sign in and ask Ankit's Digital Twin..."}
+                  disabled={agent.isRunning || rateLimitCountdown > 0}
+                  style={{
+                    width: '100%',
+                    padding: '0.6rem 4.5rem 0.6rem 0.9rem',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--border-hairline)',
+                    background: 'var(--bg-surface-subtle)',
+                    fontSize: '0.86rem',
+                    outline: 'none',
+                    transition: 'all 0.15s ease',
+                    color: 'var(--text-primary)',
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--accent-slate)';
+                    e.currentTarget.style.background = '#FFFFFF';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border-hairline)';
+                    e.currentTarget.style.background = 'var(--bg-surface-subtle)';
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    right: '0.6rem',
+                    fontSize: '0.72rem',
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: 600,
+                    color: dailyQuestionsUsed >= 8 ? 'var(--accent-amber)' : 'var(--text-muted)',
+                    background: dailyQuestionsUsed >= 8 ? 'var(--accent-amber-subtle)' : 'var(--bg-surface)',
+                    padding: '0.15rem 0.4rem',
+                    borderRadius: 'var(--radius-sm)',
+                    border: dailyQuestionsUsed >= 8 ? '1px solid #FDE68A' : '1px solid var(--border-hairline)',
+                    pointerEvents: 'none',
+                    userSelect: 'none'
+                  }}
+                  title="Daily AI questions used (Resets at 00:00 UTC)"
+                >
+                  ⚡ {dailyQuestionsUsed}/10
+                </div>
+              </div>
+
+              {rateLimitCountdown > 0 ? (
+                <button
+                  type="button"
+                  disabled
+                  style={{
+                    padding: '0 0.65rem',
+                    height: '36px',
+                    borderRadius: 'var(--radius-md)',
+                    background: 'var(--accent-amber-subtle)',
+                    border: '1px solid #FDE68A',
+                    color: '#B45309',
+                    fontSize: '0.78rem',
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: 600,
+                    cursor: 'not-allowed',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.3rem',
+                    flexShrink: 0
+                  }}
+                  title="Giving Ankit a quick breather"
+                >
+                  <span>⏳ {rateLimitCountdown}s</span>
+                </button>
+              ) : agent.isRunning ? (
+                <button
+                  type="button"
+                  onClick={stopAgent}
+                  style={{
+                    width: '36px', height: '36px',
+                    borderRadius: 'var(--radius-md)',
+                    background: '#FEF2F2',
+                    border: '1px solid #FECACA',
+                    color: '#DC2626',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    transition: 'all 0.15s ease'
+                  }}
+                  title="Stop generating"
+                >
+                  <Square size={14} />
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={!input.trim()}
+                  style={{
+                    width: '36px', height: '36px',
+                    borderRadius: 'var(--radius-md)',
+                    background: input.trim() 
+                      ? 'var(--accent-slate)' 
+                      : 'var(--bg-surface-subtle)',
+                    border: '1px solid var(--border-hairline)',
+                    color: input.trim() ? '#FFFFFF' : 'var(--text-muted)',
+                    cursor: input.trim() ? 'pointer' : 'default',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    transition: 'all 0.15s ease',
+                    boxShadow: input.trim() ? '0 1px 3px rgba(0, 0, 0, 0.15)' : 'none'
+                  }}
+                >
+                  <Send size={14} />
+                </button>
+              )}
+            </form>
+          )}
         </div>
 
         {/* Unauthenticated Recruiter Overlay */}

@@ -24,6 +24,7 @@ import {
   useRenderTool,
   useRenderToolCall,
 } from '@copilotkit/react-core/v2';
+import { useAuth } from '@clerk/clerk-react';
 import { z } from 'zod';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -36,6 +37,7 @@ import { getSavedRecruiterSession } from '../lib/session';
 interface DigitalTwinChatProps {
   isAuthenticated: boolean;
   recruiterEmail?: string;
+  token?: string | null;
   onOpenAuth: () => void;
   onOpenCitation: (citation: CitationDetail) => void;
   onBlockedEmail?: () => void;
@@ -342,6 +344,7 @@ const KnowledgeSearchCard: React.FC<KnowledgeSearchCardProps> = ({
 export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
   isAuthenticated,
   recruiterEmail,
+  token,
   onOpenAuth,
   onOpenCitation,
   onBlockedEmail,
@@ -351,6 +354,7 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
   isSidebarCollapsed = false,
   onToggleSidebar
 }) => {
+  const { getToken, isSignedIn } = useAuth();
   const { agent } = useAgent();
   const { copilotkit } = useCopilotKit();
   const renderToolCall = useRenderToolCall();
@@ -404,6 +408,28 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
       }
     }
 
+    // Ensure CopilotKit runtime headers contain the live Clerk session token before executing the agent
+    let activeToken = token;
+    if (isSignedIn) {
+      try {
+        const freshToken = await getToken();
+        if (freshToken) activeToken = freshToken;
+      } catch (err) {
+        console.warn('Could not refresh Clerk token before booking slot:', err);
+      }
+    }
+    if (!activeToken) {
+      const session = getSavedRecruiterSession();
+      activeToken = session?.token || (typeof window !== 'undefined' ? localStorage.getItem('recruiter_token') : null);
+    }
+
+    if (activeToken) {
+      copilotkit.setHeaders({
+        ...copilotkit.headers,
+        Authorization: `Bearer ${activeToken}`,
+      });
+    }
+
     agent.addMessage({
       id: crypto.randomUUID(),
       role: 'user',
@@ -411,7 +437,7 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
     });
 
     await copilotkit.runAgent({ agent });
-  }, [isAuthenticated, recruiterEmail, onOpenAuth, agent, copilotkit]);
+  }, [isAuthenticated, recruiterEmail, token, isSignedIn, getToken, onOpenAuth, agent, copilotkit]);
 
   // If recruiter completes authentication while having a pending slot, auto-book it immediately
   useEffect(() => {
@@ -829,22 +855,44 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
     setInput('');
     inputRef.current?.focus();
 
+    // Ensure CopilotKit runtime headers contain the live Clerk session token before executing the agent
+    let activeToken = token;
+    if (isSignedIn) {
+      try {
+        const freshToken = await getToken();
+        if (freshToken) activeToken = freshToken;
+      } catch (err) {
+        console.warn('Could not refresh Clerk token before sending message:', err);
+      }
+    }
+    if (!activeToken) {
+      const session = getSavedRecruiterSession();
+      activeToken = session?.token || (typeof window !== 'undefined' ? localStorage.getItem('recruiter_token') : null);
+    }
+
+    if (activeToken) {
+      copilotkit.setHeaders({
+        ...copilotkit.headers,
+        Authorization: `Bearer ${activeToken}`,
+      });
+    }
+
     try {
       await copilotkit.runAgent({ agent });
     } catch (err: any) {
       const errStr = String(err?.message || err);
-      if (errStr.includes('401') || errStr.includes('403') || errStr.toLowerCase().includes('disposable')) {
+      if (errStr.includes('403') || errStr.toLowerCase().includes('disposable')) {
         onBlockedEmail?.();
       }
     }
-  }, [input, agent, copilotkit, isAuthenticated, recruiterEmail, onOpenAuth, onBlockedEmail]);
+  }, [input, agent, copilotkit, isAuthenticated, recruiterEmail, token, isSignedIn, getToken, onOpenAuth, onBlockedEmail]);
 
-  // Reactive agent error listener (catches 401 / 403 on /agentic_chat stream)
+  // Reactive agent error listener (catches 403 / DisposableEmail on /agentic_chat stream)
   useEffect(() => {
     const error = (agent as any).error;
     if (error) {
       const errStr = String(error?.message || error);
-      if (errStr.includes('401') || errStr.includes('403') || errStr.toLowerCase().includes('disposable')) {
+      if (errStr.includes('403') || errStr.toLowerCase().includes('disposable')) {
         onBlockedEmail?.();
       }
     }
@@ -903,10 +951,21 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
               };
             });
 
-          const session = getSavedRecruiterSession();
+          let sessionToken: string | null = token || null;
+          if (isSignedIn) {
+            try {
+              const fresh = await getToken();
+              if (fresh) sessionToken = fresh;
+            } catch {}
+          }
+          if (!sessionToken) {
+            const session = getSavedRecruiterSession();
+            sessionToken = session?.token || (typeof window !== 'undefined' ? localStorage.getItem('recruiter_token') : null);
+          }
+
           const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-          if (session?.token) {
-            headers['Authorization'] = `Bearer ${session.token}`;
+          if (sessionToken) {
+            headers['Authorization'] = `Bearer ${sessionToken}`;
           }
 
           const res = await fetch(`${backendUrl}/api/followup/suggestions`, {
@@ -930,7 +989,7 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
 
       fetchFollowUps();
     }
-  }, [agent.isRunning, agent.messages, backendUrl]);
+  }, [agent.isRunning, agent.messages, backendUrl, token, isSignedIn, getToken]);
 
   // Intercept citation clicks
   useEffect(() => {

@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { CopilotKit } from '@copilotkit/react-core';
+import { useCopilotKit } from '@copilotkit/react-core/v2';
 import { ArchitectureDossier } from './components/ArchitectureDossier';
 import { DigitalTwinChat } from './components/DigitalTwinChat';
 import { BlockedEmailModal } from './components/BlockedEmailModal';
@@ -9,11 +10,33 @@ import { BookOpen, Terminal } from 'lucide-react';
 import { getSavedRecruiterSession, saveRecruiterSession, clearRecruiterSession } from './lib/session';
 import './styles/index.css';
 
+/**
+ * Syncs the active Clerk JWT session token imperatively with CopilotKit's runtime headers.
+ * Ensures dynamically refreshed or newly signed-in tokens immediately propagate to outgoing agent requests.
+ */
+function CopilotAuthSync({ token }: { token: string | null }) {
+  const { copilotkit } = useCopilotKit();
+
+  useEffect(() => {
+    if (token) {
+      copilotkit.setHeaders({
+        ...copilotkit.headers,
+        Authorization: `Bearer ${token}`
+      });
+    } else {
+      const current = { ...copilotkit.headers };
+      delete (current as any).Authorization;
+      copilotkit.setHeaders(current);
+    }
+  }, [copilotkit, token]);
+
+  return null;
+}
+
 export function App() {
   const { isSignedIn, isLoaded, getToken } = useAuth();
   const { user } = useUser();
   const { signOut, openSignIn } = useClerk();
-  const isProcessingAuthRef = useRef(false);
   
   // Initialize state immediately from cached localStorage session to prevent reload flicker/flash
   const [token, setToken] = useState<string | null>(() => {
@@ -69,14 +92,15 @@ export function App() {
   const backendUrl = import.meta.env.VITE_BACKEND_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
-    if (isSignedIn && isLoaded) {
-      if (isProcessingAuthRef.current) return;
-      isProcessingAuthRef.current = true;
+    let isMounted = true;
 
+    if (isSignedIn && isLoaded) {
       (async () => {
         try {
           // Fetch Clerk RS256 JWT session token
           const sessionToken = await getToken();
+          if (!isMounted) return;
+
           const email = user?.primaryEmailAddress?.emailAddress ?? user?.emailAddresses?.[0]?.emailAddress;
 
           let inferredCompany: string | undefined = undefined;
@@ -95,13 +119,17 @@ export function App() {
             }
           }
 
-          setToken(sessionToken ?? null);
-          setRecruiterEmail(email);
+          if (sessionToken) {
+            setToken(sessionToken);
+          }
+          if (email) {
+            setRecruiterEmail(email);
+          }
           setIsBlockedEmail(false);
 
-          if (email) {
+          if (email || sessionToken) {
             saveRecruiterSession({
-              email,
+              email: email || recruiterEmail || '',
               company: inferredCompany,
               token: sessionToken ?? undefined,
               userId: user?.id,
@@ -109,18 +137,15 @@ export function App() {
             });
           }
 
-          if (pendingPrompt) {
+          if (pendingPrompt && sessionToken) {
             setSelectedPrompt(pendingPrompt);
             setPendingPrompt(null);
           }
         } catch (error) {
           console.error('Failed to fetch Clerk session token / user info:', error);
-        } finally {
-          isProcessingAuthRef.current = false;
         }
       })();
     } else if (isLoaded && !isSignedIn) {
-      isProcessingAuthRef.current = false;
       // Clear session when Clerk confirms signed out
       setToken(null);
       setRecruiterEmail(undefined);
@@ -128,7 +153,11 @@ export function App() {
       setIsBlockedEmail(false);
       clearRecruiterSession();
     }
-  }, [isSignedIn, isLoaded, getToken, user, pendingPrompt]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isSignedIn, isLoaded, getToken, user, pendingPrompt, recruiterEmail]);
 
   // Global network interceptor: distinguish between Blocked Disposable Email (X-Blocked-Reason / 403) vs Regular 401 Session Expiry
   useEffect(() => {
@@ -198,6 +227,7 @@ export function App() {
       showDevConsole={false}
       headers={copilotHeaders}
     >
+      <CopilotAuthSync token={token} />
       <div style={{ height: '100vh', maxHeight: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div className="console-container">
           {/* Mobile Segmented View Switcher */}
@@ -243,6 +273,7 @@ export function App() {
               <DigitalTwinChat
                 isAuthenticated={isEffectivelyAuthenticated}
                 recruiterEmail={recruiterEmail}
+                token={token}
                 onOpenAuth={() => openSignIn()}
                 onBlockedEmail={() => setIsBlockedEmail(true)}
                 onOpenCitation={(citation) => setSelectedCitation(citation)}

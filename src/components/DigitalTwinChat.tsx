@@ -11,12 +11,23 @@ import {
   ChevronUp, 
   Terminal, 
   Zap, 
-  Bot, 
-  Building2, 
+  Layers,
+  Cpu,
   Calendar, 
   User,
   PanelLeftOpen,
-  PanelLeftClose
+  PanelLeftClose,
+  Shield,
+  Database,
+  GitBranch,
+  Briefcase,
+  Download,
+  FileText,
+  Globe,
+  Network,
+  Flame,
+  Award,
+  ShieldCheck
 } from 'lucide-react';
 import { 
   useAgent,
@@ -39,8 +50,8 @@ interface DigitalTwinChatProps {
   recruiterEmail?: string;
   token?: string | null;
   onOpenAuth: () => void;
-  onOpenCitation: (citation: CitationDetail) => void;
   onBlockedEmail?: () => void;
+  onOpenCitation: (citation: CitationDetail) => void;
   externalPrompt?: string | null;
   onClearExternalPrompt?: () => void;
   onAgentStateChange?: (isRunning: boolean) => void;
@@ -48,37 +59,120 @@ interface DigitalTwinChatProps {
   onToggleSidebar?: () => void;
 }
 
+type WelcomeCategory = 'popular' | 'scale' | 'agentic' | 'platform';
+
 interface QuickPromptItem {
   icon: React.ReactNode;
   title: string;
   prompt: string;
   tag: string;
+  categories: WelcomeCategory[];
+  accent: string;
 }
+
+const CATEGORY_FILTERS: { id: WelcomeCategory; label: string; icon: React.ReactNode }[] = [
+  { id: 'popular',  label: 'Popular',            icon: <Flame size={13} /> },
+  { id: 'scale',    label: 'Flagship Scale',      icon: <Zap size={13} /> },
+  { id: 'agentic',  label: 'Agentic AI',          icon: <Cpu size={13} /> },
+  { id: 'platform', label: 'Platform & Security',  icon: <Shield size={13} /> },
+];
 
 const QUICK_PROMPTS: QuickPromptItem[] = [
   {
     icon: <Zap size={15} color="#D97706" />,
-    title: "ASDA Peak Resilience",
-    prompt: "How was zero downtime maintained during 90k/30-min peak trading surges at ASDA?",
-    tag: "High Scale"
+    title: "Tier-1 Retail Peak Resilience",
+    prompt: "How was zero downtime maintained during 90k/30-min peak trading surges for the Tier-1 UK grocery retailer?",
+    tag: "High Scale",
+    categories: ['popular', 'scale'],
+    accent: 'amber'
   },
   {
-    icon: <Bot size={15} color="#2563EB" />,
-    title: "Enterprise Agentic AI",
-    prompt: "How do you implement secure MCP tool calling and SpiceDB ReBAC in production?",
-    tag: "AI & Security"
+    icon: <Layers size={15} color="#2563EB" />,
+    title: "Enterprise Platform & DevEx",
+    prompt: "How did you design the enterprise golden paths and private NuGet package ecosystems across 200+ repositories?",
+    tag: "Platform Eng",
+    categories: ['popular', 'platform'],
+    accent: 'blue'
   },
   {
-    icon: <Building2 size={15} color="#059669" />,
-    title: "Cloud Modernisation",
-    prompt: "Walk me through the Boots UK 25k-user identity and cloud modernisation.",
-    tag: "Cloud Native"
+    icon: <Cpu size={15} color="#059669" />,
+    title: "Conversational Digital Twin",
+    prompt: "How is this Digital Twin platform architected using .NET 10, Microsoft Agent Framework, and Zuplo AI Gateway?",
+    tag: ".NET 10 & AI",
+    categories: ['popular', 'agentic'],
+    accent: 'emerald'
   },
   {
     icon: <Calendar size={15} color="#1D4ED8" />,
-    title: "Interview Availability",
-    prompt: "When is Ankit available for an interview or technical screening call?",
-    tag: "Live Scheduling"
+    title: "Interview & Work Status",
+    prompt: "What is your UK visa status, notice period, and when are you available for a screening call?",
+    tag: "Live Scheduling",
+    categories: ['popular'],
+    accent: 'blue'
+  },
+  {
+    icon: <Database size={15} color="#7C3AED" />,
+    title: "CosmosDB & Service Bus at Scale",
+    prompt: "How did you architect the CosmosDB tiered data strategy and Service Bus session sharding pattern for 700k weekly orders?",
+    tag: "Data Architecture",
+    categories: ['scale'],
+    accent: 'violet'
+  },
+  {
+    icon: <GitBranch size={15} color="#059669" />,
+    title: "Copilot Agent: 100+ Repo Migration",
+    prompt: "How did you build the deterministic GitHub Copilot Agent that automated .NET 6 to .NET 10 migration across 100+ repositories?",
+    tag: "Agentic AI",
+    categories: ['agentic'],
+    accent: 'emerald'
+  },
+  {
+    icon: <Shield size={15} color="#DC2626" />,
+    title: "Zero-Trust Security & STRIDE",
+    prompt: "How is the zero-trust security architecture designed with Private Endpoints, Managed Identity RBAC, and STRIDE threat modelling?",
+    tag: "Security",
+    categories: ['platform'],
+    accent: 'red'
+  },
+  {
+    icon: <Briefcase size={15} color="#0891B2" />,
+    title: "25k-User Cloud Modernisation",
+    prompt: "How did you architect the Azure cloud modernisation of 7 business-critical apps for 25,000+ users at the UK health & beauty retailer?",
+    tag: "Migration",
+    categories: ['scale', 'platform'],
+    accent: 'cyan'
+  },
+  {
+    icon: <Network size={15} color="#7C3AED" />,
+    title: "Zuplo AI Gateway & Edge Pooling",
+    prompt: "How did you architect the Zuplo AI Gateway with multi-account Cloudflare pooling, auto-fallback, and Smart DLP?",
+    tag: "Edge AI",
+    categories: ['agentic'],
+    accent: 'violet'
+  },
+  {
+    icon: <ShieldCheck size={15} color="#D97706" />,
+    title: "Enterprise RAG + SpiceDB ReBAC",
+    prompt: "How do you design Enterprise RAG with fine-grained SpiceDB authorization?",
+    tag: "Security & RAG",
+    categories: ['agentic', 'platform'],
+    accent: 'amber'
+  },
+  {
+    icon: <Award size={15} color="#7C3AED" />,
+    title: "18 Verified Certifications",
+    prompt: "What are your 18 verified Microsoft, Anthropic, GitHub, and AWS certifications?",
+    tag: "Credentials",
+    categories: ['platform'],
+    accent: 'violet'
+  },
+  {
+    icon: <Globe size={15} color="#0284C7" />,
+    title: "In-Store Edge Printing (600+ Stores)",
+    prompt: "How did you architect the in-store edge printing system and self-healing DNS caching with FusionCache across 600+ physical stores?",
+    tag: "Hardware Edge",
+    categories: ['scale'],
+    accent: 'sky'
   }
 ];
 
@@ -101,19 +195,43 @@ const INITIAL_PILLS: FollowUpPillItem[] = [
   },
   {
     id: 'default-asda',
-    label: "ASDA Scale & Zero-Incident Resilience",
+    label: "Tier-1 Retail Scale & Zero Downtime",
     action_type: 'ask_question',
     category: 'Flagship Scale',
     icon: 'sparkles',
-    prompt: "How did you achieve zero downtime during ASDA's 90k/30-min peak trading?"
+    prompt: "How did you achieve zero downtime during the Tier-1 UK retailer's 90k/30-min peak trading?"
+  },
+  {
+    id: 'default-platform-eng',
+    label: "Platform Engineering (200+ Repos)",
+    action_type: 'ask_question',
+    category: 'Platform Eng',
+    icon: 'sparkles',
+    prompt: "How did you build the Platform Engineering golden paths and NuGet package suites across 200+ repositories?"
+  },
+  {
+    id: 'default-digital-twin',
+    label: "Conversational Digital Twin (.NET 10)",
+    action_type: 'ask_question',
+    category: 'AI Architecture',
+    icon: 'sparkles',
+    prompt: "How is this Conversational Digital Twin architected using .NET 10, Microsoft Agent Framework, and Zuplo AI Gateway?"
   },
   {
     id: 'default-agentic',
-    label: "Agentic AI, MCP & Enterprise Security",
+    label: "Agentic AI, MCP & Security",
     action_type: 'ask_question',
     category: 'AI Architecture',
     icon: 'sparkles',
     prompt: "How do you secure MCP tool calling and multi-agent workflows in production?"
+  },
+  {
+    id: 'default-certs',
+    label: "18 Verified Credentials",
+    action_type: 'ask_question',
+    category: 'Credentials',
+    icon: 'sparkles',
+    prompt: "What are your 18 verified Microsoft, Anthropic, GitHub, and AWS certifications?"
   },
   {
     id: 'default-visa',
@@ -122,6 +240,70 @@ const INITIAL_PILLS: FollowUpPillItem[] = [
     category: 'Authorisation',
     icon: 'sparkles',
     prompt: "What is your UK Skilled Worker visa status, notice period, and location preference?"
+  },
+  {
+    id: 'default-servicebus-sharding',
+    label: "Service Bus Session Sharding",
+    action_type: 'ask_question',
+    category: 'Data Architecture',
+    icon: 'sparkles',
+    prompt: "How does the sharded session pattern on Azure Service Bus achieve 4x parallel throughput while preserving FIFO ordering per store?"
+  },
+  {
+    id: 'default-cosmosdb-strategy',
+    label: "CosmosDB RU Optimization (60%+ Savings)",
+    action_type: 'ask_question',
+    category: 'Data Architecture',
+    icon: 'sparkles',
+    prompt: "How did you slash Cosmos DB write RU costs by over 60% with selective indexing and tiered data strategy?"
+  },
+  {
+    id: 'default-zero-trust',
+    label: "Zero-Trust Security & Private Networking",
+    action_type: 'ask_question',
+    category: 'Security',
+    icon: 'sparkles',
+    prompt: "How is the zero-trust security architecture designed with Private Endpoints, Managed Identity RBAC, and STRIDE threat modelling?"
+  },
+  {
+    id: 'default-copilot-migration',
+    label: "Copilot Agent: 100+ Repo Migration",
+    action_type: 'ask_question',
+    category: 'Agentic AI',
+    icon: 'sparkles',
+    prompt: "How did you build the deterministic GitHub Copilot Agent that automated .NET 6 to .NET 10 migration across 100+ repositories with zero hallucinations?"
+  },
+  {
+    id: 'default-boots-modernisation',
+    label: "25k-User Cloud Modernisation",
+    action_type: 'ask_question',
+    category: 'Migration',
+    icon: 'sparkles',
+    prompt: "How did you architect the Azure cloud modernisation of 7 business-critical apps for 25,000+ users at the UK health & beauty retailer?"
+  },
+  {
+    id: 'default-open-source',
+    label: "Open Source .NET AI SDKs",
+    action_type: 'ask_question',
+    category: 'Open Source',
+    icon: 'sparkles',
+    prompt: "What open-source .NET AI tooling and Microsoft.Extensions.AI community SDKs have you published?"
+  },
+  {
+    id: 'default-railway-migration',
+    label: "European Railway Cloud Migration",
+    action_type: 'ask_question',
+    category: 'Migration',
+    icon: 'sparkles',
+    prompt: "How did you formulate the Azure Landing Zone architecture and CAF migration strategy for the National European Railway Operator?"
+  },
+  {
+    id: 'default-leadership',
+    label: "Engineering Leadership & Mentorship",
+    action_type: 'ask_question',
+    category: 'Leadership',
+    icon: 'sparkles',
+    prompt: "Tell me about your engineering leadership style, ADR governance, mentoring practices, and cross-functional stakeholder management."
   }
 ];
 
@@ -359,6 +541,7 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
   const { copilotkit } = useCopilotKit();
   const renderToolCall = useRenderToolCall();
   const [input, setInput] = useState('');
+  const [activeCategory, setActiveCategory] = useState<WelcomeCategory>('popular');
   const [followUpPills, setFollowUpPills] = useState<FollowUpPillItem[]>(INITIAL_PILLS);
   const [isLoadingFollowUps, setIsLoadingFollowUps] = useState(false);
   const [rateLimitCountdown, setRateLimitCountdown] = useState<number>(0);
@@ -1122,7 +1305,7 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
           sourceName: title,
           sourceLink: anchor,
           category: anchor.includes('skills') ? 'Skills' : (anchor.includes('cert') ? 'Certifications' : 'Experience'),
-          company: anchor.includes('asda') ? 'ASDA / Major UK Retailer' : (anchor.includes('boots') ? 'Boots UK' : (anchor.includes('nmbs') ? 'NMBS Belgian Railways' : undefined)),
+          company: anchor.includes('asda') ? 'Major UK Grocery Retailer' : (anchor.includes('boots') ? 'Major UK Health & Beauty Retailer' : (anchor.includes('nmbs') ? 'National European Railway Operator' : undefined)),
           content: `Verified architectural documentation for: ${title}`
         });
       }
@@ -1206,7 +1389,9 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
         </div>
 
         {/* ========== WELCOME SCREEN (shown when no messages) ========== */}
-        {!hasMessages && (
+        {!hasMessages && (() => {
+          const filteredCards = QUICK_PROMPTS.filter(p => p.categories.includes(activeCategory)).slice(0, 4);
+          return (
           <div style={{
             flex: 1,
             display: 'flex',
@@ -1246,55 +1431,78 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
               fontSize: '0.82rem',
               color: 'var(--text-muted)',
               maxWidth: '520px',
-              marginBottom: '1.25rem',
+              marginBottom: '1.15rem',
               lineHeight: 1.5
             }}>
               Directly query Ankit's verified engineering portfolio, peak scale system designs, and live screening availability.
             </p>
 
-            {/* Quick Prompt Command Grid */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: '0.65rem',
-              maxWidth: '680px',
-              width: '100%',
-              marginBottom: '1.25rem'
-            }}>
-              {QUICK_PROMPTS.map((item, idx) => (
+            {/* ── Tier 1: Quick Action Bar ── */}
+            <div className="welcome-action-bar">
+              <button
+                type="button"
+                className="welcome-action-chip"
+                onClick={() => sendMessage("When is Ankit available for an interview or screening call?")}
+                disabled={agent.isRunning}
+              >
+                <Calendar size={14} color="#1D4ED8" />
+                <span>Book Screening</span>
+              </button>
+              <button
+                type="button"
+                className="welcome-action-chip"
+                onClick={() => sendMessage("Can I download Ankit Sarkar's resume PDF?")}
+                disabled={agent.isRunning}
+              >
+                <Download size={14} color="#059669" />
+                <span>Resume PDF</span>
+              </button>
+              <button
+                type="button"
+                className="welcome-action-chip"
+                onClick={() => sendMessage("What is your UK visa status, notice period, and location preference?")}
+                disabled={agent.isRunning}
+              >
+                <FileText size={14} color="#7C3AED" />
+                <span>Visa & Notice Period</span>
+              </button>
+            </div>
+
+            {/* ── Tier 2: Category Filter Chips ── */}
+            <div className="category-filter-bar">
+              {CATEGORY_FILTERS.map((cat) => (
                 <button
-                  key={idx}
+                  key={cat.id}
                   type="button"
+                  className={`category-chip${activeCategory === cat.id ? ' category-chip--active' : ''}`}
+                  onClick={() => setActiveCategory(cat.id)}
+                >
+                  {cat.icon}
+                  <span>{cat.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* ── Tier 3: 2×2 Filtered Card Grid ── */}
+            <div
+              key={activeCategory}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: '0.6rem',
+                maxWidth: '620px',
+                width: '100%',
+                marginBottom: '1rem'
+              }}
+            >
+              {filteredCards.map((item, idx) => (
+                <button
+                  key={`${activeCategory}-${idx}`}
+                  type="button"
+                  className="welcome-card"
+                  data-accent={item.accent}
                   onClick={() => sendMessage(item.prompt)}
                   disabled={agent.isRunning}
-                  style={{
-                    background: 'var(--bg-surface-subtle)',
-                    border: '1px solid var(--border-hairline)',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '0.85rem 1rem',
-                    textAlign: 'left',
-                    cursor: agent.isRunning ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    gap: '0.35rem',
-                    transition: 'all 0.12s ease',
-                    boxShadow: 'var(--shadow-xs)'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (agent.isRunning) return;
-                    e.currentTarget.style.borderColor = 'var(--accent-slate)';
-                    e.currentTarget.style.background = '#FFFFFF';
-                    e.currentTarget.style.transform = 'translateY(-1.5px)';
-                    e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (agent.isRunning) return;
-                    e.currentTarget.style.borderColor = 'var(--border-hairline)';
-                    e.currentTarget.style.background = 'var(--bg-surface-subtle)';
-                    e.currentTarget.style.transform = 'none';
-                    e.currentTarget.style.boxShadow = 'var(--shadow-xs)';
-                  }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
@@ -1314,7 +1522,8 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
               ))}
             </div>
           </div>
-        )}
+          );
+        })()}
 
         {/* ========== MESSAGE LIST (shown when messages exist) ========== */}
         {hasMessages && (

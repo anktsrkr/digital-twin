@@ -69,7 +69,7 @@ export const HeroHeader: React.FC<HeroHeaderProps> = ({
               </h1>
               <span className="badge-pill badge-available" style={{ padding: '0.12rem 0.5rem', fontSize: '0.6875rem' }}>
                 <span className="status-dot"></span>
-                AI Solutions Architect & Principal
+                Principal Engineer & AI Architect
               </span>
             </div>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.1rem', letterSpacing: '-0.01em' }}>

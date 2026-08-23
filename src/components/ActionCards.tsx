@@ -144,7 +144,7 @@ export const DownloadResumeCard: React.FC<DownloadResumeCardProps> = ({
         Ankit Sarkar — AI Solutions Architect (Resume PDF)
       </h4>
       <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.85rem' }}>
-        Includes complete project breakdowns for ASDA (700k orders/wk), Boots UK, Belgian Railways, certifications & multi-agent systems.
+        Includes complete project breakdowns for Tier-1 UK Grocery (700k orders/wk), Health & Beauty Retailer, European Railways, certifications & multi-agent systems.
       </p>
 
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>

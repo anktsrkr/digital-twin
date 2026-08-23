@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
 import { 
   Zap, 
-  Bot, 
-  Building2, 
+  Layers, 
+  Cpu, 
   Calendar, 
   Download, 
   ChevronRight,
   Globe,
   ShieldCheck,
   KeyRound,
-  PanelLeftClose
+  PanelLeftClose,
+  GitBranch,
+  Shield,
+  Award,
+  Printer,
+  Network
 } from 'lucide-react';
 
 export interface ArchitectureDossierProps {
@@ -40,39 +45,106 @@ const CASE_STUDIES: CaseStudy[] = [
   {
     id: 'asda-scale',
     category: 'FLAGSHIP HIGH-SCALE',
-    title: "ASDA eCommerce Picking Platform",
+    title: "Tier-1 UK Grocery Picking Platform",
     metrics: "700k+ orders/wk • 90k/30-min peak • 0 incidents",
-    description: "Architected decoupled event-driven platform handling flash-sale trading surges with Azure Service Bus Premium sessions & Redis state.",
-    technologies: ['.NET 8', 'Azure Service Bus', 'Redis', 'Cosmos DB', 'Event Grid'],
-    prompt: "How did you achieve zero downtime during ASDA's 90k/30-min peak trading?",
+    description: "Architected decoupled event-driven platform handling flash-sale trading surges with Azure Service Bus session sharding, Cosmos DB RU reduction & Redis state.",
+    technologies: ['.NET 10 / C#', 'Azure Service Bus', 'Cosmos DB', 'Redis', 'Terraform'],
+    prompt: "How did you achieve zero downtime during the Tier-1 UK retailer's 90k/30-min peak trading?",
     icon: <Zap size={16} color="#D97706" />
   },
   {
-    id: 'agentic-ai',
-    category: 'AGENTIC AI & SECURITY',
-    title: "Enterprise Multi-Agent & MCP",
-    metrics: "Azure AI Foundry • SpiceDB ReBAC • pgvector",
-    description: "Multi-agent systems with Microsoft Agent Framework, fine-grained authorization via SpiceDB ReBAC, and hybrid semantic search.",
-    technologies: ['Agent Framework', 'MCP', 'SpiceDB', 'pgvector', 'Voyage AI'],
-    prompt: "How do you secure MCP tool calling and multi-agent workflows in production?",
-    icon: <Bot size={16} color="#2563EB" />
+    id: 'edge-printing',
+    category: 'HARDWARE EDGE & IOT',
+    title: "In-Store Edge Hardware & Self-Healing DNS",
+    metrics: "600+ Stores • Self-Healing DNS • FusionCache",
+    description: "Architected multi-channel in-store hardware edge printing across 600+ physical retail stores with self-healing DNS heuristics, FusionCache TTLs, raw TCP sockets, and in-memory ZPL barcode rendering.",
+    technologies: ['FusionCache', 'IoT & Edge Hardware', 'TCP/IP Sockets', 'ZPL Rendering', 'Polly Resilience', 'mTLS'],
+    prompt: "How did you architect the in-store edge printing system and self-healing DNS caching with FusionCache across 600+ physical stores?",
+    icon: <Printer size={16} color="#0284C7" />
   },
   {
-    id: 'enterprise-modernisation',
-    category: 'ENTERPRISE MODERNISATION',
-    title: "Boots UK & Belgian Railways (NMBS)",
-    metrics: "25k store users • Stub Identity • Cloud Migration",
-    description: "Modernised legacy on-prem infrastructure to cloud-native microservices with zero disruption to retail pharmacy and national transport.",
-    technologies: ['Azure Functions', 'API Management', 'Identity Platform', 'Event Hubs'],
-    prompt: "What was your architecture strategy for the Boots UK and Belgian Railways modernisations?",
-    icon: <Building2 size={16} color="#059669" />
+    id: 'platform-engineering',
+    category: 'PLATFORM & DEVEX LEAD',
+    title: "Enterprise Platform & DevEx Golden Paths",
+    metrics: "200+ Repos • Private NuGet • Automated SemVer",
+    description: "Architected enterprise golden paths, reusable Terraform modules, Release Please governance, and private NuGet package suites on Azure Artifacts.",
+    technologies: ['Platform Engineering', 'Terraform', 'Release Please', 'Azure Artifacts', 'GitHub Actions'],
+    prompt: "How did you build the Platform Engineering golden paths and NuGet package suites across 200+ repositories?",
+    icon: <Layers size={16} color="#2563EB" />
+  },
+  {
+    id: 'copilot-migration',
+    category: 'AGENTIC AI MODERNISATION',
+    title: "Deterministic Multi-Repo Copilot Migration Agent",
+    metrics: "100+ Repos Modernized • Phase-Gated Skills • >75% Token Reduction",
+    description: "Engineered deterministic VS Code GitHub Copilot Agent for automated .NET 6 to .NET 10 migration across 100+ repos with phase-scoped skills and zero-hallucination verification gates.",
+    technologies: ['GitHub Copilot', 'Microsoft.Agents.AI', 'VS Code Skills', '.NET 10', 'Automated Verification'],
+    prompt: "How did you build the deterministic GitHub Copilot Agent that automated .NET 6 to .NET 10 migration across 100+ repositories?",
+    icon: <GitBranch size={16} color="#059669" />
+  },
+  {
+    id: 'enterprise-rag-spicedb',
+    category: 'ZERO-TRUST AI & RAG',
+    title: "Zero-Trust Enterprise RAG with SpiceDB ReBAC",
+    metrics: "Google Zanzibar Schema • Pre-Retrieval Auth • Jina Embeddings",
+    description: "Architected zero-trust RAG integrating fine-grained SpiceDB ReBAC authorization with MongoDB Vector Search, multi-stage cross-encoder reranking, and citation audit provenance.",
+    technologies: ['SpiceDB ReBAC', 'Enterprise RAG', 'MongoDB Vector', 'Jina AI', 'Zanzibar Pattern'],
+    prompt: "How do you design Enterprise RAG with fine-grained SpiceDB authorization?",
+    icon: <ShieldCheck size={16} color="#7C3AED" />
+  },
+  {
+    id: 'digital-twin-platform',
+    category: 'CONVERSATIONAL AI PLATFORM',
+    title: "Conversational Digital Twin & AG-UI SSE Engine",
+    metrics: ".NET 10 IChatClient • Microsoft.Agents.AI • Sub-Second SSE",
+    description: "Architected interactive AI portfolio with .NET 10 IChatClient decorator pipeline, AG-UI protocol streaming, MongoDB vector retrieval, and automated Cal.com v2 scheduling.",
+    technologies: ['.NET 10', 'Microsoft.Agents.AI', 'MongoDB Vector', 'AG-UI SSE', 'Cal.com API', 'Grafana LGTM'],
+    prompt: "How is this Conversational Digital Twin architected using .NET 10, Microsoft Agent Framework, and AG-UI streaming?",
+    icon: <Cpu size={16} color="#0D9488" />
+  },
+  {
+    id: 'zuplo-ai-gateway',
+    category: 'EDGE AI & FINOPS',
+    title: "Zuplo AI Gateway: Multi-Account Edge Pooling",
+    metrics: "Multi-Account Pooling • Dynamic Model Routing • Smart DLP",
+    description: "Engineered edge AI gateway pooling multiple Cloudflare AI accounts with round-robin distribution, sub-second 429 auto-fallback, edge rate limiting, and Smart DLP PII sanitization.",
+    technologies: ['Zuplo AI Gateway', 'Cloudflare Workers AI', 'Edge Computing', 'Smart DLP', 'TypeScript', 'Cloud FinOps'],
+    prompt: "How did you architect the Zuplo AI Gateway with multi-account Cloudflare pooling, auto-fallback, and Smart DLP?",
+    icon: <Network size={16} color="#7C3AED" />
+  },
+  {
+    id: 'security-networking',
+    category: 'ZERO-TRUST CLOUD SECURITY',
+    title: "Zero-Trust Private Networking & STRIDE",
+    metrics: "Private Link • Managed Identity RBAC • VNet Route-All",
+    description: "Secured enterprise cloud perimeter with Azure Private Endpoints, System-Assigned Managed Identity RBAC, VNet Route-All inspection, and rigorous STRIDE threat mitigations.",
+    technologies: ['Private Endpoints', 'Managed Identity', 'Azure APIM', 'Azure Key Vault', 'STRIDE'],
+    prompt: "How is the zero-trust security architecture designed with Private Endpoints, Managed Identity RBAC, and STRIDE threat modelling?",
+    icon: <Shield size={16} color="#DC2626" />
   }
 ];
 
 const TECH_MATRIX = [
-  { group: 'Cloud & Systems', items: ['Microsoft Azure', 'Event-Driven', 'Microservices', 'Kubernetes', 'Serverless'] },
-  { group: 'AI & Data', items: ['Agentic AI', 'MCP Protocol', 'Enterprise RAG', 'SpiceDB ReBAC', 'pgvector', 'Voyage AI'] },
-  { group: 'Engineering', items: ['.NET 8 / C#', 'Azure Service Bus', 'Redis', 'Cosmos DB', 'PostgreSQL', 'TypeScript'] }
+  { 
+    group: 'Enterprise Cloud & Architecture', 
+    items: ['Microsoft Azure', 'Event-Driven (EDA)', 'Microservices & CQRS', 'Azure API Management (APIM)', 'Azure Landing Zones (CAF)', 'Zero-Trust Security', 'IoT & Edge Hardware'] 
+  },
+  { 
+    group: 'Agentic AI & LLMOps', 
+    items: ['Microsoft Agent Framework', 'Microsoft.Agents.AI', 'Model Context Protocol (MCP)', 'GitHub Copilot Agents', 'Multi-Agent Swarms', 'Enterprise RAG', 'SpiceDB ReBAC', 'Zuplo AI Gateway'] 
+  },
+  { 
+    group: 'Platform Engineering & DevSecOps', 
+    items: ['Terraform Modules', 'Release Please (SemVer)', 'Internal NuGet Suites', 'Azure Artifacts', 'GitHub Actions', 'GitHub Advanced Security', 'Internal Developer Platform (IDP)'] 
+  },
+  { 
+    group: 'Resilience, SRE & FinOps', 
+    items: ['OpenTelemetry (OTel)', 'Grafana LGTM', 'Result Pattern (ErrorOr)', 'Polly Resilience', 'Dead Letter Queue (DLQ)', 'Cloud FinOps', 'FusionCache', 'Self-Healing DNS'] 
+  },
+  { 
+    group: 'Languages & Data Stores', 
+    items: ['.NET 10 / C#', 'Azure Cosmos DB', 'Azure Service Bus', 'MongoDB Vector Search', 'Azure Cache for Redis', 'Jina AI Embeddings', 'TypeScript & React 19', 'Cal.com API v2'] 
+  }
 ];
 
 export const ArchitectureDossier: React.FC<ArchitectureDossierProps> = ({
@@ -107,54 +179,142 @@ export const ArchitectureDossier: React.FC<ArchitectureDossierProps> = ({
         background: '#FFFFFF',
         border: '1px solid var(--border-hairline)',
         borderRadius: 'var(--radius-lg)',
-        padding: '1.2rem',
+        padding: '1.15rem',
         boxShadow: 'var(--shadow-xs)'
       }}>
-        {/* Candidate Identity & Experience Badge + Socials + Collapse Button */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.35rem', gap: '0.5rem' }}>
-          <div>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.025em', lineHeight: 1.2 }}>
-              Ankit Sarkar
-            </h3>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              AI Solutions Architect & Principal
+        {/* Candidate Identity Header + Collapse Button */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
+            <div style={{
+              width: '38px',
+              height: '38px',
+              borderRadius: '9px',
+              background: 'var(--accent-slate)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#FFFFFF',
+              fontFamily: 'var(--font-sans)',
+              fontWeight: 800,
+              fontSize: '0.92rem',
+              letterSpacing: '-0.02em',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
+              flexShrink: 0
+            }}>
+              AS
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <h3 style={{ fontSize: '1.08rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.025em', lineHeight: 1.2, margin: 0 }}>
+                  Ankit Sarkar
+                </h3>
+                <span className="status-dot" title="Available for technical leadership & screening" />
+              </div>
+              <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--accent-slate)', marginTop: '0.12rem', letterSpacing: '-0.01em', lineHeight: 1.2 }}>
+                Principal Engineer & AI Architect
+              </div>
+            </div>
+          </div>
+
+          {onToggleSidebar && (
+            <button
+              type="button"
+              onClick={onToggleSidebar}
+              className="btn-icon sidebar-collapse-btn"
+              style={{ width: '28px', height: '28px', borderRadius: '6px', flexShrink: 0 }}
+              title="Collapse Sidebar (Ctrl+B)"
+              aria-label="Collapse Sidebar"
+            >
+              <PanelLeftClose size={13} color="var(--text-secondary)" />
+            </button>
+          )}
+        </div>
+
+        {/* Badges & Social Links Toolbar */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '0.4rem',
+          marginTop: '0.65rem',
+          paddingTop: '0.65rem',
+          borderTop: '1px solid var(--border-hairline)'
+        }}>
+          {/* Key Metric Badges */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <span className="badge-mono" style={{ fontSize: '0.6875rem', padding: '0.15rem 0.45rem' }} title="13+ Years of Enterprise Software Delivery">
+              13+ Yrs
+            </span>
+            <span 
+              className="badge-mono" 
+              style={{ 
+                fontSize: '0.6875rem', 
+                padding: '0.15rem 0.45rem', 
+                background: '#F5F3FF', 
+                color: '#7C3AED', 
+                borderColor: '#DDD6FE' 
+              }} 
+              title="18 Industry Certifications: 9 Microsoft, 4 Anthropic, 5 GitHub, 1 AWS"
+            >
+              18 Certs
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.28rem', flexShrink: 0 }}>
-            <a href="https://anktsrkr.github.io" target="_blank" rel="noreferrer" className="btn-icon" style={{ width: '28px', height: '28px', borderRadius: '6px' }} title="Technical Blog">
+
+          {/* Social Profile Links */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.28rem' }}>
+            <a 
+              href="https://anktsrkr.github.io" 
+              target="_blank" 
+              rel="noreferrer" 
+              className="btn-icon" 
+              style={{ width: '28px', height: '28px', borderRadius: '6px' }} 
+              title="Technical Blog"
+            >
               <Globe size={13} color="var(--text-secondary)" />
             </a>
-            <a href="https://github.com/anktsrkr" target="_blank" rel="noreferrer" className="btn-icon" style={{ width: '28px', height: '28px', borderRadius: '6px' }} title="GitHub">
+            <a 
+              href="https://github.com/anktsrkr" 
+              target="_blank" 
+              rel="noreferrer" 
+              className="btn-icon" 
+              style={{ width: '28px', height: '28px', borderRadius: '6px' }} 
+              title="GitHub Profile"
+            >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
                 <path d="M9 18c-4.51 2-5-2-7-2" />
               </svg>
             </a>
-            <a href="https://linkedin.com/in/sarkaran" target="_blank" rel="noreferrer" className="btn-icon" style={{ width: '28px', height: '28px', borderRadius: '6px' }} title="LinkedIn">
+            <a 
+              href="https://linkedin.com/in/sarkaran" 
+              target="_blank" 
+              rel="noreferrer" 
+              className="btn-icon" 
+              style={{ width: '28px', height: '28px', borderRadius: '6px' }} 
+              title="LinkedIn Profile"
+            >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0A66C2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
                 <rect x="2" y="9" width="4" height="12" />
                 <circle cx="4" cy="4" r="2" />
               </svg>
             </a>
-            <span className="badge-mono" style={{ marginLeft: '0.1rem' }}>13+ Yrs</span>
-            {onToggleSidebar && (
-              <button
-                type="button"
-                onClick={onToggleSidebar}
-                className="btn-icon sidebar-collapse-btn"
-                style={{ width: '28px', height: '28px', borderRadius: '6px', marginLeft: '0.15rem' }}
-                title="Collapse Sidebar (Ctrl+B)"
-                aria-label="Collapse Sidebar"
-              >
-                <PanelLeftClose size={13} color="var(--text-secondary)" />
-              </button>
-            )}
+            <a 
+              href="https://www.credly.com/users/sarkaran/badges/credly" 
+              target="_blank" 
+              rel="noreferrer" 
+              className="btn-icon" 
+              style={{ width: '28px', height: '28px', borderRadius: '6px' }} 
+              title="Credly Verified Credentials (18 Badges)"
+            >
+              <Award size={13} color="#7C3AED" />
+            </a>
           </div>
         </div>
 
-        <p style={{ fontSize: '0.78125rem', color: 'var(--text-secondary)', marginTop: '0.2rem', lineHeight: 1.45 }}>
-          Architecting high-scale cloud platforms and enterprise agentic systems on Microsoft Azure.
+        <p style={{ fontSize: '0.78125rem', color: 'var(--text-secondary)', marginTop: '0.55rem', lineHeight: 1.45 }}>
+          Architecting high-scale distributed systems, enterprise platform suites, and agentic AI on .NET & Microsoft Azure.
         </p>
 
         {/* Candidate Target Positioning & Work Preferences */}
@@ -171,20 +331,22 @@ export const ArchitectureDossier: React.FC<ArchitectureDossierProps> = ({
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', fontSize: '0.73rem', gap: '0.5rem' }}>
             <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}>Open To:</span>
             <span style={{ fontWeight: 600, color: 'var(--text-primary)', textAlign: 'right' }}>
-              AI Solutions Architect • Principal • Staff
+              Principal Engineer • AI Architect • Platform Lead
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.73rem' }}>
             <span style={{ color: 'var(--text-muted)' }}>Based In:</span>
-            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>United Kingdom</span>
+            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Leeds, United Kingdom</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.73rem' }}>
             <span style={{ color: 'var(--text-muted)' }}>Work Mode:</span>
-            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>London (Hybrid) • Remote • Relocate</span>
+            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Hybrid (Leeds/London) • Remote • Relocate</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.73rem' }}>
             <span style={{ color: 'var(--text-muted)' }}>Work Rights:</span>
-            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>UK Global Business Mobility (GBM)</span>
+            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }} title="Valid UK GBM Visa. Eligible for in-country transfer / change of employer with Skilled Worker Visa Sponsorship.">
+              UK GBM (Requires Skilled Worker Visa)
+            </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.73rem' }}>
             <span style={{ color: 'var(--text-muted)' }}>Availability:</span>

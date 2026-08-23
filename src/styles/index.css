@@ -883,6 +883,11 @@ aside::-webkit-scrollbar-thumb:hover,
     display: none;
   }
 
+  .dossier-pane-inner {
+    width: 100%;
+    min-width: 0;
+  }
+
   .terminal-pane {
     height: calc(100vh - 145px);
   }
@@ -949,6 +954,205 @@ aside::-webkit-scrollbar-thumb:hover,
   opacity: 0 !important;
   visibility: hidden !important;
 }
+
+/* =========================================================================
+   WELCOME SCREEN — Intent-Split Layout (Option A)
+   ========================================================================= */
+
+/* Quick Action Bar — conversion-oriented chips */
+.welcome-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.15rem;
+  width: 100%;
+  max-width: 580px;
+}
+
+.welcome-action-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  background: #FFFFFF;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-full);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-xs);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.welcome-action-chip:hover {
+  border-color: var(--accent-cobalt-border);
+  background: var(--accent-cobalt-subtle);
+  color: var(--accent-slate);
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.1);
+}
+
+.welcome-action-chip:active {
+  transform: translateY(0);
+}
+
+.welcome-action-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Category Filter Bar */
+.category-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  max-width: 580px;
+}
+
+.category-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.32rem 0.72rem;
+  background: transparent;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-full);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.category-chip:hover {
+  border-color: var(--border-subtle);
+  color: var(--text-secondary);
+  background: var(--bg-surface-subtle);
+}
+
+.category-chip--active {
+  background: var(--accent-slate);
+  border-color: var(--accent-slate);
+  color: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(29, 78, 216, 0.2);
+}
+
+.category-chip--active:hover {
+  background: var(--accent-slate-hover);
+  border-color: var(--accent-slate-hover);
+  color: #FFFFFF;
+}
+
+/* Welcome Prompt Card (2×2 grid items) */
+.welcome-card {
+  position: relative;
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem 0.85rem 1.1rem;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+  animation: welcomeCardEnter 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.welcome-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 3px 0 0 3px;
+  background: var(--border-subtle);
+  transition: background 0.15s ease;
+}
+
+.welcome-card:hover {
+  border-color: var(--accent-slate);
+  background: #FFFFFF;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.welcome-card:hover::before {
+  background: var(--accent-slate);
+}
+
+.welcome-card:active {
+  transform: translateY(0);
+}
+
+.welcome-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.welcome-card:disabled:hover {
+  border-color: var(--border-hairline);
+  background: var(--bg-surface-subtle);
+  box-shadow: var(--shadow-xs);
+}
+
+.welcome-card:disabled:hover::before {
+  background: var(--border-subtle);
+}
+
+/* Accent bar colour variants */
+.welcome-card[data-accent="amber"]::before { background: #D97706; }
+.welcome-card[data-accent="blue"]::before { background: #2563EB; }
+.welcome-card[data-accent="emerald"]::before { background: #059669; }
+.welcome-card[data-accent="indigo"]::before { background: #4F46E5; }
+.welcome-card[data-accent="violet"]::before { background: #7C3AED; }
+.welcome-card[data-accent="cyan"]::before { background: #0891B2; }
+.welcome-card[data-accent="red"]::before { background: #DC2626; }
+.welcome-card[data-accent="sky"]::before { background: #0284C7; }
+
+.welcome-card:hover[data-accent="amber"]::before { background: #B45309; }
+.welcome-card:hover[data-accent="blue"]::before { background: #1D4ED8; }
+.welcome-card:hover[data-accent="emerald"]::before { background: #047857; }
+.welcome-card:hover[data-accent="indigo"]::before { background: #4338CA; }
+.welcome-card:hover[data-accent="violet"]::before { background: #6D28D9; }
+.welcome-card:hover[data-accent="cyan"]::before { background: #0E7490; }
+.welcome-card:hover[data-accent="red"]::before { background: #B91C1C; }
+.welcome-card:hover[data-accent="sky"]::before { background: #0369A1; }
+
+/* Stagger-fade animation for grid transitions */
+@keyframes welcomeCardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.welcome-card:nth-child(1) { animation-delay: 0ms; }
+.welcome-card:nth-child(2) { animation-delay: 50ms; }
+.welcome-card:nth-child(3) { animation-delay: 100ms; }
+.welcome-card:nth-child(4) { animation-delay: 150ms; }
+
 
 /* Ensure clean white-label modal card */
 .cl-card {

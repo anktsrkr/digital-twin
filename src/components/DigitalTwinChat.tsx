@@ -1586,46 +1586,9 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
               let hasText = Boolean(textContent && typeof textContent === 'string' && textContent.trim().length > 0);
               const hasToolCalls = Boolean(Array.isArray(toolCalls) && toolCalls.length > 0);
 
-              // Tool-only rendered tools (BookInterviewSlot, GetAvailableInterviewSlots, etc.) produce
-              // assistant messages with no text and no tool calls because the tool call was already
-              // handled by useRenderTool. Detect this by scanning nearby messages for those calls and
-              // suppress the spurious "interruption" fallback in that case.
-              const SILENT_RENDERED_TOOLS = [
-                'BookInterviewSlot',
-                'GetAvailableInterviewSlots',
-                'ShowScheduleInterviewCard',
-                'ShowDownloadResumeCard',
-              ];
-
-              const hasNearbyRenderedToolCall = (() => {
-                // Check this message's own tool calls first (inline detection)
-                const allMessages: any[] = agent.messages;
-                for (let scan = Math.max(0, index - 3); scan <= Math.min(allMessages.length - 1, index + 1); scan++) {
-                  const scanMsg = allMessages[scan];
-                  if (!scanMsg) continue;
-                  const scanCalls = scanMsg.toolCalls || scanMsg.tool_calls || [];
-                  const calls = Array.isArray(scanCalls) ? scanCalls : [];
-                  if (calls.some((tc: any) => SILENT_RENDERED_TOOLS.includes(tc.name || tc.function?.name))) {
-                    return true;
-                  }
-                  if (Array.isArray(scanMsg.contents)) {
-                    const inlineCalls = scanMsg.contents.filter((c: any) =>
-                      c && (c.type === 'action_call' || c.type === 'tool_call' || c.$type === 'function_call')
-                    );
-                    if (inlineCalls.some((c: any) => SILENT_RENDERED_TOOLS.includes(c.name || c.actionName || c.function?.name))) {
-                      return true;
-                    }
-                  }
-                }
-                return false;
-              })();
-
+              // Suppress empty non-visual assistant message chunks emitted during streaming / tool resolution
               if (!isUser && !hasText && !hasToolCalls) {
-                if (agent.isRunning || hasNearbyRenderedToolCall) {
-                  return null;
-                }
-                textContent = "I encountered an interruption while synthesizing this architectural response. Please feel free to ask a targeted follow-up question or choose any open slot on my calendar below!";
-                hasText = true;
+                return null;
               }
 
               // Check if this is the first message in a consecutive run of assistant messages

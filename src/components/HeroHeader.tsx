@@ -67,9 +67,9 @@ export const HeroHeader: React.FC<HeroHeaderProps> = ({
               <h1 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
                 Ankit Sarkar
               </h1>
-              <span className="badge-pill badge-available" style={{ padding: '0.12rem 0.5rem', fontSize: '0.6875rem' }}>
+              <span className="badge-pill badge-available" style={{ padding: '0.12rem 0.5rem', fontSize: '0.575rem', letterSpacing: '-0.01em' }}>
                 <span className="status-dot"></span>
-                Principal Engineer & AI Architect
+                AI Solutions Architect | Platform Engineering | Cloud, DevEx &amp; AI-Assisted Software Delivery
               </span>
             </div>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.1rem', letterSpacing: '-0.01em' }}>

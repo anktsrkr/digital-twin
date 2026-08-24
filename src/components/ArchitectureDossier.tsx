@@ -210,8 +210,8 @@ export const ArchitectureDossier: React.FC<ArchitectureDossierProps> = ({
                 </h3>
                 <span className="status-dot" title="Available for technical leadership & screening" />
               </div>
-              <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--accent-slate)', marginTop: '0.12rem', letterSpacing: '-0.01em', lineHeight: 1.2 }}>
-                Principal Engineer & AI Architect
+              <div style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--accent-slate)', marginTop: '0.12rem', letterSpacing: '-0.015em', lineHeight: 1.3 }}>
+                AI Solutions Architect | Platform Engineering | Cloud, DevEx & AI-Assisted Software Delivery
               </div>
             </div>
           </div>

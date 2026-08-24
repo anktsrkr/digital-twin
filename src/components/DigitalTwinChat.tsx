@@ -1,19 +1,19 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { 
-  CheckCircle2, 
-  Lock, 
-  ArrowUpRight, 
-  Send, 
-  Square, 
-  AlertCircle, 
-  BookOpen, 
-  ChevronDown, 
-  ChevronUp, 
-  Terminal, 
-  Zap, 
+import {
+  CheckCircle2,
+  Lock,
+  ArrowUpRight,
+  Send,
+  Square,
+  AlertCircle,
+  BookOpen,
+  ChevronDown,
+  ChevronUp,
+  Terminal,
+  Zap,
   Layers,
   Cpu,
-  Calendar, 
+  Calendar,
   User,
   PanelLeftOpen,
   PanelLeftClose,
@@ -29,7 +29,7 @@ import {
   Award,
   ShieldCheck
 } from 'lucide-react';
-import { 
+import {
   useAgent,
   useCopilotKit,
   useRenderTool,
@@ -71,10 +71,10 @@ interface QuickPromptItem {
 }
 
 const CATEGORY_FILTERS: { id: WelcomeCategory; label: string; icon: React.ReactNode }[] = [
-  { id: 'popular',  label: 'Popular',            icon: <Flame size={13} /> },
-  { id: 'scale',    label: 'Flagship Scale',      icon: <Zap size={13} /> },
-  { id: 'agentic',  label: 'Agentic AI',          icon: <Cpu size={13} /> },
-  { id: 'platform', label: 'Platform & Security',  icon: <Shield size={13} /> },
+  { id: 'popular', label: 'Popular', icon: <Flame size={13} /> },
+  { id: 'scale', label: 'Flagship Scale', icon: <Zap size={13} /> },
+  { id: 'agentic', label: 'Agentic AI', icon: <Cpu size={13} /> },
+  { id: 'platform', label: 'Platform & Security', icon: <Shield size={13} /> },
 ];
 
 const QUICK_PROMPTS: QuickPromptItem[] = [
@@ -669,7 +669,7 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
     const formatted = slot.formatted_time || slot.time_utc;
 
     const bookingMessage = `Please book the ${formatted} (${slotTimeUtc}) slot (${duration} minutes) for ${name} at ${email}.`;
-    
+
     // Prune any legacy reasoning messages from frontend state
     if (Array.isArray(agent.messages) && typeof (agent as any).setMessages === 'function') {
       const clean = agent.messages.filter((m: any) => m.role !== 'reasoning' && m.type !== 'reasoning' && m.role !== 'activity');
@@ -753,7 +753,7 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
     render: ({ parameters, result }: any) => {
       const parsed = parseResult(result);
       return (
-        <ScheduleMeetingCard 
+        <ScheduleMeetingCard
           headline={parsed?.headline || "Schedule a Call or Technical Screening with Ankit Sarkar"}
           recommendedTopic={parsed?.recommended_topic || parameters?.interviewType || 'AI Solutions Architecture, Agentic Systems & Enterprise Cloud'}
           bookingUrl={parsed?.booking_url || "https://cal.com/ankitsarkar"}
@@ -803,7 +803,7 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
       }
 
       return (
-        <LiveSlotPicker 
+        <LiveSlotPicker
           slots={slots}
           timeZone={timeZone}
           duration={duration}
@@ -847,7 +847,7 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
 
       const parsed = parseResult(result);
       const success = parsed?.success !== false;
-      
+
       if (!success) {
         const errorText = sanitizeErrorMessage(parsed?.message);
         return (
@@ -1004,7 +1004,7 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
             borderRight: '1px solid #D1FAE5',
           }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
-              
+
               <div>
                 <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.25rem' }}>
                   Date
@@ -1207,7 +1207,7 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
       const basePath = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
       const link = document.createElement('a');
       link.href = `${basePath}/resume.pdf`;
-      link.download = 'Ankit_Sarkar_AI_Solutions_Architect_Resume.pdf';
+      link.download = 'ankit_sarkar_ai_architect_resume.pdf';
       link.click();
 
       const email = authRef.current.recruiterEmail || recruiterEmail || localStorage.getItem('recruiter_email');
@@ -1253,7 +1253,7 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
             try {
               const fresh = await getToken();
               if (fresh) sessionToken = fresh;
-            } catch {}
+            } catch { }
           }
           if (!sessionToken) {
             const session = getSavedRecruiterSession();
@@ -1392,142 +1392,142 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
         {!hasMessages && (() => {
           const filteredCards = QUICK_PROMPTS.filter(p => p.categories.includes(activeCategory)).slice(0, 4);
           return (
-          <div style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '1.5rem',
-            textAlign: 'center',
-            overflowY: 'auto'
-          }}>
-            {/* Header Badge */}
             <div style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '10px',
-              background: 'var(--accent-slate)',
+              flex: 1,
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#FFFFFF',
-              marginBottom: '0.65rem',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)'
+              padding: '1.5rem',
+              textAlign: 'center',
+              overflowY: 'auto'
             }}>
-              <Terminal size={20} />
-            </div>
+              {/* Header Badge */}
+              <div style={{
+                width: '42px',
+                height: '42px',
+                borderRadius: '10px',
+                background: 'var(--accent-slate)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#FFFFFF',
+                marginBottom: '0.65rem',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)'
+              }}>
+                <Terminal size={20} />
+              </div>
 
-            <h2 style={{
-              fontSize: '1.2rem',
-              fontWeight: 700,
-              color: 'var(--text-primary)',
-              letterSpacing: '-0.025em',
-              marginBottom: '0.25rem'
-            }}>
-              Interactive Architecture Terminal
-            </h2>
-            <p style={{
-              fontSize: '0.82rem',
-              color: 'var(--text-muted)',
-              maxWidth: '520px',
-              marginBottom: '1.15rem',
-              lineHeight: 1.5
-            }}>
-              Directly query Ankit's verified engineering portfolio, peak scale system designs, and live screening availability.
-            </p>
+              <h2 style={{
+                fontSize: '1.2rem',
+                fontWeight: 700,
+                color: 'var(--text-primary)',
+                letterSpacing: '-0.025em',
+                marginBottom: '0.25rem'
+              }}>
+                Interactive Architecture Terminal
+              </h2>
+              <p style={{
+                fontSize: '0.82rem',
+                color: 'var(--text-muted)',
+                maxWidth: '520px',
+                marginBottom: '1.15rem',
+                lineHeight: 1.5
+              }}>
+                Directly query Ankit's verified engineering portfolio, peak scale system designs, and live screening availability.
+              </p>
 
-            {/* ── Tier 1: Quick Action Bar ── */}
-            <div className="welcome-action-bar">
-              <button
-                type="button"
-                className="welcome-action-chip"
-                onClick={() => sendMessage("When is Ankit available for an interview or screening call?")}
-                disabled={agent.isRunning}
-              >
-                <Calendar size={14} color="#1D4ED8" />
-                <span>Book Screening</span>
-              </button>
-              <button
-                type="button"
-                className="welcome-action-chip"
-                onClick={() => sendMessage("Can I download Ankit Sarkar's resume PDF?")}
-                disabled={agent.isRunning}
-              >
-                <Download size={14} color="#059669" />
-                <span>Resume PDF</span>
-              </button>
-              <button
-                type="button"
-                className="welcome-action-chip"
-                onClick={() => sendMessage("What is your UK visa status, notice period, and location preference?")}
-                disabled={agent.isRunning}
-              >
-                <FileText size={14} color="#7C3AED" />
-                <span>Visa & Notice Period</span>
-              </button>
-            </div>
-
-            {/* ── Tier 2: Category Filter Chips ── */}
-            <div className="category-filter-bar">
-              {CATEGORY_FILTERS.map((cat) => (
+              {/* ── Tier 1: Quick Action Bar ── */}
+              <div className="welcome-action-bar">
                 <button
-                  key={cat.id}
                   type="button"
-                  className={`category-chip${activeCategory === cat.id ? ' category-chip--active' : ''}`}
-                  onClick={() => setActiveCategory(cat.id)}
-                >
-                  {cat.icon}
-                  <span>{cat.label}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* ── Tier 3: 2×2 Filtered Card Grid ── */}
-            <div
-              key={activeCategory}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '0.6rem',
-                maxWidth: '620px',
-                width: '100%',
-                marginBottom: '1rem'
-              }}
-            >
-              {filteredCards.map((item, idx) => (
-                <button
-                  key={`${activeCategory}-${idx}`}
-                  type="button"
-                  className="welcome-card"
-                  data-accent={item.accent}
-                  onClick={() => sendMessage(item.prompt)}
+                  className="welcome-action-chip"
+                  onClick={() => sendMessage("When is Ankit available for an interview or screening call?")}
                   disabled={agent.isRunning}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      {item.icon}
-                      <span style={{ fontSize: '0.78125rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                        {item.title}
+                  <Calendar size={14} color="#1D4ED8" />
+                  <span>Book Screening</span>
+                </button>
+                <button
+                  type="button"
+                  className="welcome-action-chip"
+                  onClick={() => sendMessage("Can I download Ankit Sarkar's resume PDF?")}
+                  disabled={agent.isRunning}
+                >
+                  <Download size={14} color="#059669" />
+                  <span>Resume PDF</span>
+                </button>
+                <button
+                  type="button"
+                  className="welcome-action-chip"
+                  onClick={() => sendMessage("What is your UK visa status, notice period, and location preference?")}
+                  disabled={agent.isRunning}
+                >
+                  <FileText size={14} color="#7C3AED" />
+                  <span>Visa & Notice Period</span>
+                </button>
+              </div>
+
+              {/* ── Tier 2: Category Filter Chips ── */}
+              <div className="category-filter-bar">
+                {CATEGORY_FILTERS.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    className={`category-chip${activeCategory === cat.id ? ' category-chip--active' : ''}`}
+                    onClick={() => setActiveCategory(cat.id)}
+                  >
+                    {cat.icon}
+                    <span>{cat.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* ── Tier 3: 2×2 Filtered Card Grid ── */}
+              <div
+                key={activeCategory}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '0.6rem',
+                  maxWidth: '620px',
+                  width: '100%',
+                  marginBottom: '1rem'
+                }}
+              >
+                {filteredCards.map((item, idx) => (
+                  <button
+                    key={`${activeCategory}-${idx}`}
+                    type="button"
+                    className="welcome-card"
+                    data-accent={item.accent}
+                    onClick={() => sendMessage(item.prompt)}
+                    disabled={agent.isRunning}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        {item.icon}
+                        <span style={{ fontSize: '0.78125rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                          {item.title}
+                        </span>
+                      </div>
+                      <span className="badge-mono" style={{ fontSize: '0.6rem', padding: '0.05rem 0.3rem' }}>
+                        {item.tag}
                       </span>
                     </div>
-                    <span className="badge-mono" style={{ fontSize: '0.6rem', padding: '0.05rem 0.3rem' }}>
-                      {item.tag}
-                    </span>
-                  </div>
-                  <p style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.4, margin: 0 }}>
-                    "{item.prompt}"
-                  </p>
-                </button>
-              ))}
+                    <p style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.4, margin: 0 }}>
+                      "{item.prompt}"
+                    </p>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
           );
         })()}
 
         {/* ========== MESSAGE LIST (shown when messages exist) ========== */}
         {hasMessages && (
-          <div 
+          <div
             className="autohide-scrollbar"
             style={{
               flex: 1,
@@ -2038,7 +2038,7 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
                   ref={inputRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder={isAuthenticated 
+                  placeholder={isAuthenticated
                     ? "Ask a technical architecture screening question or book a call... (Enter to send)"
                     : "Click to sign in and ask Ankit's Digital Twin..."}
                   disabled={agent.isRunning || rateLimitCountdown > 0}
@@ -2135,8 +2135,8 @@ export const DigitalTwinChat: React.FC<DigitalTwinChatProps> = ({
                   style={{
                     width: '36px', height: '36px',
                     borderRadius: 'var(--radius-md)',
-                    background: input.trim() 
-                      ? 'var(--accent-slate)' 
+                    background: input.trim()
+                      ? 'var(--accent-slate)'
                       : 'var(--bg-surface-subtle)',
                     border: '1px solid var(--border-hairline)',
                     color: input.trim() ? '#FFFFFF' : 'var(--text-muted)',

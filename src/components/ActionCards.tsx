@@ -69,10 +69,10 @@ export const ScheduleMeetingCard: React.FC<ScheduleMeetingCardProps> = ({
         ))}
       </div>
 
-      <a 
-        href={bookingUrl} 
-        target="_blank" 
-        rel="noreferrer" 
+      <a
+        href={bookingUrl}
+        target="_blank"
+        rel="noreferrer"
         className="btn-primary"
         style={{
           textDecoration: 'none',
@@ -100,7 +100,7 @@ interface DownloadResumeCardProps {
 
 export const DownloadResumeCard: React.FC<DownloadResumeCardProps> = ({
   pdfUrl,
-  fileName = 'Ankit_Sarkar_AI_Solutions_Architect_Resume.pdf',
+  fileName = 'ankit_sarkar_ai_architect_resume.pdf',
   githubUrl = 'https://github.com/anktsrkr',
   linkedinUrl = 'https://linkedin.com/in/sarkaran',
   blogUrl = 'https://anktsrkr.github.io'
@@ -148,8 +148,8 @@ export const DownloadResumeCard: React.FC<DownloadResumeCardProps> = ({
       </p>
 
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-        <a 
-          href={resolvedPdfUrl} 
+        <a
+          href={resolvedPdfUrl}
           download={fileName}
           className="btn-primary"
           style={{

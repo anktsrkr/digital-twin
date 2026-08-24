@@ -42,7 +42,7 @@ export function App() {
   const { isSignedIn, isLoaded, getToken } = useAuth();
   const { user } = useUser();
   const { signOut, openSignIn } = useClerk();
-  
+
   // Initialize state immediately from cached localStorage session to prevent reload flicker/flash
   const [token, setToken] = useState<string | null>(() => {
     const session = getSavedRecruiterSession();
@@ -171,7 +171,7 @@ export function App() {
     window.fetch = async (...args) => {
       const response = await originalFetch(...args);
       const url = typeof args[0] === 'string' ? args[0] : (args[0] instanceof Request ? args[0].url : '');
-      
+
       if (url.includes('/agentic_chat')) {
         const isBlockedReason = response.headers.get('X-Blocked-Reason') === 'DisposableEmail';
         const isForbidden = response.status === 403;
@@ -201,7 +201,7 @@ export function App() {
     const basePath = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
     const link = document.createElement('a');
     link.href = `${basePath}/resume.pdf`;
-    link.download = 'Ankit_Sarkar_AI_Solutions_Architect_Resume.pdf';
+    link.download = 'ankit_sarkar_ai_architect_resume.pdf';
     link.click();
   }, []);
 

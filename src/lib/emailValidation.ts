@@ -14,6 +14,9 @@ const DISPOSABLE_DOMAINS = new Set([
   'grr.la', 'pokemail.net', 'tempail.com', 'guerrillamail.info', 'armyspy.com', 'cuvox.de', 'dayrep.com',
   'einrot.com', 'fleckens.hu', 'gustr.com', 'jourrapide.com', 'rhyta.com', 'superrito.com', 'teleworm.us',
   'mvrht.com', 'binkmail.com', 'safetymail.info', 'trashmail.ws', 'mytempmail.com', 'mohmal.im',
+  // 10minutemail / temp mail rotating pools
+  'laoia.com', 'vjuum.com', 'hitbase.net', 'sp-mail.com', 'boun.cr', 'disbox.net', 'disbox.org',
+  'fmail.co.uk', 'fmail.com', 'boximail.com', 'tmpbox.net', 'tmpmail.org', 'tmpmail.net',
   // Anonymous, pseudonymous, & disallowed secondary free webmail
   'proton.me', 'protonmail.com', 'protonmail.ch', 'pm.me',
   'fastmail.com', 'fastmail.fm', 'fastmail.net', 'fastmail.org', 'fastmail.co.uk', 'fastmail.us',

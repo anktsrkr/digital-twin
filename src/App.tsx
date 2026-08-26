@@ -113,7 +113,7 @@ export function App() {
 
           if (email && email.includes('@')) {
             const domain = email.split('@')[1]?.toLowerCase();
-            const standardProviders = ['gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com', 'live.com', 'msn.com', 'yahoo.com', 'icloud.com', 'proton.me', 'protonmail.com'];
+            const standardProviders = ['gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com', 'live.com', 'msn.com', 'yahoo.com', 'yahoo.co.uk', 'icloud.com', 'me.com', 'mac.com'];
             if (domain && !standardProviders.includes(domain)) {
               const companyPart = domain.split('.')[0];
               if (companyPart) {

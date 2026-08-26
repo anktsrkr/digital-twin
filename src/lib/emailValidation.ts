@@ -13,13 +13,20 @@ const DISPOSABLE_DOMAINS = new Set([
   'trashmail.org', 'yopmail.com', 'yopmail.fr', 'yopmail.net', 'zippymail.info', 'disposablemail.com',
   'grr.la', 'pokemail.net', 'tempail.com', 'guerrillamail.info', 'armyspy.com', 'cuvox.de', 'dayrep.com',
   'einrot.com', 'fleckens.hu', 'gustr.com', 'jourrapide.com', 'rhyta.com', 'superrito.com', 'teleworm.us',
-  'mvrht.com', 'binkmail.com', 'safetymail.info', 'trashmail.ws', 'mytempmail.com', 'mohmal.im'
+  'mvrht.com', 'binkmail.com', 'safetymail.info', 'trashmail.ws', 'mytempmail.com', 'mohmal.im',
+  // Anonymous, pseudonymous, & disallowed secondary free webmail
+  'proton.me', 'protonmail.com', 'protonmail.ch', 'pm.me',
+  'fastmail.com', 'fastmail.fm', 'fastmail.net', 'fastmail.org', 'fastmail.co.uk', 'fastmail.us',
+  'aol.com', 'aol.co.uk', 'aim.com',
+  'gmx.com', 'gmx.net', 'gmx.de', 'gmx.at', 'gmx.ch',
+  'mail.com', 'email.com', 'usa.com',
+  'tuta.io', 'tutanota.com', 'tutanota.de', 'tuta.com',
+  'zoho.com'
 ]);
 
 const STANDARD_PROVIDERS = new Set([
   'gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com', 'live.com', 'msn.com',
-  'yahoo.com', 'yahoo.co.uk', 'icloud.com', 'me.com', 'mac.com', 'proton.me', 'protonmail.com',
-  'zoho.com', 'aol.com', 'fastmail.com', 'gmx.com', 'mail.com'
+  'yahoo.com', 'yahoo.co.uk', 'icloud.com', 'me.com', 'mac.com'
 ]);
 
 export interface EmailCheckResult {
@@ -59,19 +66,10 @@ export function validateRecruiterEmail(email: string): EmailCheckResult {
 
   const domain = parts[1];
 
-  // Check against disposable domain list
-  if (DISPOSABLE_DOMAINS.has(domain)) {
-    return {
-      isValid: false,
-      isDisposable: true,
-      domain,
-      message: 'Temporary / disposable emails are blocked. Please use your corporate or standard email.'
-    };
-  }
-
-  // Check subdomains
-  for (const d of DISPOSABLE_DOMAINS) {
-    if (domain.endsWith('.' + d)) {
+  // Check against disposable domain list & hierarchical subdomains
+  let currentCheck = domain;
+  while (currentCheck) {
+    if (DISPOSABLE_DOMAINS.has(currentCheck)) {
       return {
         isValid: false,
         isDisposable: true,
@@ -79,6 +77,9 @@ export function validateRecruiterEmail(email: string): EmailCheckResult {
         message: 'Temporary / disposable emails are blocked. Please use your corporate or standard email.'
       };
     }
+    const dotIndex = currentCheck.indexOf('.');
+    if (dotIndex === -1 || dotIndex === currentCheck.length - 1) break;
+    currentCheck = currentCheck.slice(dotIndex + 1);
   }
 
   // Infer company name
